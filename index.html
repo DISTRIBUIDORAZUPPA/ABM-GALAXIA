@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABM Galaxia · Zuppa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5EFE3; --paper2:#EFE6D4; --card:#FFFCF6; --ink:#1E1912; --ink2:#3B3328; --muted:#7A6F60; --line:#E3D7C3; --line2:#D6C7AE;
+  --green:#2F7D4F; --green-bg:#E3F1E6; --amber:#C98300; --amber-bg:#FBEFD2; --red:#B4321F; --red-bg:#F8E0DA; --blue:#2A5CAA; --blue-bg:#E2EAF6;
+  --violet:#6B4FB8; --shadow:0 1px 0 rgba(30,25,18,.04),0 6px 18px -10px rgba(30,25,18,.25);
+  --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; --sans:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
+a{color:var(--blue)}
+.wrap{max-width:1320px;margin:0 auto;padding:0 20px 60px}
+header.top{padding:22px 0 14px;display:flex;gap:18px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--line2)}
+.brand .kick{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.brand h1{font-family:var(--serif);font-weight:800;font-size:34px;margin:2px 0 0;letter-spacing:-.01em}
+.brand h1 em{font-style:normal;color:var(--amber)}
+.brand .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
+.toplinks{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:12px;border:1px solid var(--line2);background:var(--card);color:var(--ink);padding:7px 11px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+.btn:hover{border-color:var(--ink2)}
+.btn.dark{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.bar{position:sticky;top:0;z-index:20;background:rgba(245,239,227,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin:0 -20px;padding:10px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
+nav.tabs button{font-family:var(--mono);font-size:12.5px;background:none;border:1px solid transparent;padding:7px 12px;border-radius:999px;cursor:pointer;color:var(--ink2)}
+nav.tabs button.on{background:var(--ink);color:var(--paper)}
+nav.tabs button .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:var(--red);color:#fff;font-size:10.5px;line-height:17px}
+.qsel{display:flex;gap:4px;align-items:center;font-family:var(--mono);font-size:12px}
+.qsel span{color:var(--muted);margin-right:4px}
+.qsel button{font-family:var(--mono);font-size:12px;border:1px solid var(--line2);background:var(--card);padding:5px 10px;border-radius:7px;cursor:pointer}
+.qsel button.on{background:var(--amber);border-color:var(--amber);color:#fff}
+section.view{display:none;padding-top:18px}
+section.view.on{display:block}
+h2.sec{font-family:var(--serif);font-weight:600;font-size:22px;margin:26px 0 10px;display:flex;align-items:baseline;gap:10px}
+h2.sec small{font-family:var(--sans);font-size:12.5px;color:var(--muted);font-weight:400}
+.grid{display:grid;gap:14px}
+.k6{grid-template-columns:repeat(6,1fr)} .k4{grid-template-columns:repeat(4,1fr)} .k3{grid-template-columns:repeat(3,1fr)} .k2{grid-template-columns:repeat(2,1fr)}
+@media (max-width:1100px){.k6{grid-template-columns:repeat(3,1fr)} .k4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:700px){nav.tabs{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:2px} nav.tabs button{white-space:nowrap} .k6,.k4,.k3,.k2{grid-template-columns:1fr} .brand h1{font-size:26px} .wrap{padding:0 14px 50px} .bar{margin:0 -14px;padding:8px 14px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.kpi .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.kpi .val{font-family:var(--serif);font-weight:800;font-size:38px;line-height:1.05;margin:6px 0 2px;letter-spacing:-.02em}
+.kpi .val small{font-size:17px;font-weight:600;color:var(--muted)}
+.kpi .kf{font-size:12.5px;color:var(--ink2)}
+.kpi.click{cursor:pointer} .kpi.click:hover{border-color:var(--ink2)}
+.meter{height:7px;border-radius:5px;background:var(--paper2);overflow:hidden;margin:8px 0 6px}
+.meter i{display:block;height:100%;border-radius:5px}
+.good{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+.p-g{background:var(--green-bg);color:var(--green)} .p-a{background:var(--amber-bg);color:#8a5a00} .p-r{background:var(--red-bg);color:var(--red)} .p-b{background:var(--blue-bg);color:var(--blue)} .p-n{background:var(--paper2);color:var(--ink2)}
+.alerts{display:grid;gap:8px}
+.alert{display:flex;gap:12px;align-items:center;padding:11px 14px;border-radius:11px;border:1px solid var(--line);background:var(--card);cursor:pointer}
+.alert:hover{border-color:var(--ink2)}
+.alert .num{font-family:var(--serif);font-weight:800;font-size:24px;min-width:48px;text-align:right}
+.alert .txt{flex:1} .alert .txt b{font-weight:600} .alert .txt div{font-size:12px;color:var(--muted)}
+.alert .go{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.alert.r{border-left:5px solid var(--red)} .alert.a{border-left:5px solid var(--amber)} .alert.b{border-left:5px solid var(--blue)} .alert.g{border-left:5px solid var(--green)}
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--card);max-height:640px}
+table{border-collapse:collapse;width:100%;font-size:12.8px}
+th{position:sticky;top:0;background:var(--paper2);font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:9px 10px;border-bottom:1px solid var(--line2);white-space:nowrap;cursor:pointer;z-index:1}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#FBF6EC}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td a,td .pill{white-space:nowrap}
+td.code{font-family:var(--mono);font-size:12px}
+.muted{color:var(--muted)} .small{font-size:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}
+.filters select,.filters input{font-family:var(--sans);font-size:13px;padding:7px 9px;border:1px solid var(--line2);border-radius:8px;background:var(--card);color:var(--ink)}
+.filters input{min-width:220px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:12px;padding:6px 11px;border-radius:999px;border:1px solid var(--line2);background:var(--card);cursor:pointer}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip .c{opacity:.7;margin-left:4px}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:980px){.board{grid-template-columns:1fr}}
+.col{background:var(--paper2);border-radius:14px;padding:10px;min-height:120px}
+.col h3{margin:4px 6px 10px;font-family:var(--serif);font-size:17px;display:flex;justify-content:space-between;align-items:center}
+.col.r h3{color:var(--red)} .col.a h3{color:#8a5a00} .col.g h3{color:var(--green)}
+.bc{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px}
+.bc .t{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.bc .t b{font-family:var(--mono);font-size:13px}
+.bc .rs{font-weight:600;font-size:13px;margin:2px 0}
+.bc .meta{font-size:11.5px;color:var(--muted)}
+.bc .prog{height:6px;border-radius:4px;background:var(--paper2);margin:8px 0 6px;position:relative;overflow:hidden}
+.bc .prog i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.bc .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.bc .plan{font-size:12px;margin-top:6px;padding:6px 8px;border-radius:7px;background:var(--paper)}
+.bc .plan.no{background:var(--amber-bg);color:#7a4f00}
+.hbar{display:grid;grid-template-columns:minmax(120px,240px) 1fr 54px;gap:8px;align-items:center;margin:6px 0;font-size:12.5px}
+.hbar .b{height:14px;border-radius:4px;background:var(--paper2);overflow:hidden}
+.hbar .b i{display:block;height:100%;border-radius:4px}
+.hbar .v{font-family:var(--mono);font-size:12px;text-align:right}
+svg text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink2);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+details.grp{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+details.grp summary{cursor:pointer;padding:11px 14px;display:flex;gap:10px;align-items:center;list-style:none}
+details.grp summary::-webkit-details-marker{display:none}
+details.grp summary .cnt{font-family:var(--serif);font-weight:800;font-size:20px;min-width:40px;text-align:right}
+details.grp .body{padding:0 14px 12px}
+.note{font-size:12.5px;color:var(--ink2);background:var(--card);border:1px dashed var(--line2);border-radius:10px;padding:10px 12px}
+.spvcard h3{font-family:var(--serif);margin:0 0 8px;font-size:19px}
+.spvrow{display:grid;grid-template-columns:1fr auto;gap:6px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.spvrow:last-child{border-bottom:0}
+.empty{padding:26px;text-align:center;color:var(--muted);font-size:13px}
+.loading{padding:80px 0;text-align:center;font-family:var(--serif);font-size:22px;color:var(--muted)}
+.foot{margin-top:40px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+body.embed header.top .toplinks{display:none}
+@media print{
+  .bar,.toplinks,.noprint,.filters{display:none!important}
+  section.view{display:none!important} section.view#v-auditor{display:block!important}
+  body{background:#fff} .card,.tbl-wrap{box-shadow:none;border-color:#ccc} .tbl-wrap{max-height:none;overflow:visible}
+  th{position:static}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="kick">Distribuidora Zuppa · Galaxia 2026 · 2.1.2.4 / 2.1.2.6</div>
+      <h1>Altas <em>&amp;</em> Bajas de PDV</h1>
+      <div class="sub" id="sub">Cargando…</div>
+    </div>
+    <div class="toplinks">
+      <a class="btn" id="lnkSheet" target="_blank" rel="noopener">📄 Abrir Sheet</a>
+      <button class="btn dark" onclick="goTab('auditor')">🧾 Vista auditor</button>
+    </div>
+  </header>
+  <div class="bar">
+    <nav class="tabs" id="tabs"></nav>
+    <div class="qsel" id="qsel"></div>
+  </div>
+  <div id="app"><div class="loading">Cargando datos…</div></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+'use strict';
+const S = { tab: 'resumen', q: 'ANIO', spv: '', prom: '', txt: '', altaFiltro: 'todas', bajaSpv: '', ctlSev: '' };
+let D = null;
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nf = (n, d = 0) => (n == null || n === '' || isNaN(n)) ? '–' : Number(n).toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = (a, b) => b ? Math.round(a / b * 1000) / 10 : null;
+const pctTxt = v => v == null ? '–' : nf(v, v % 1 ? 1 : 0) + '%';
+const fd = s => { if (!s) return ''; const p = s.split('-'); return p[2] + '/' + p[1] + '/' + p[0].slice(2); };
+const MES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+const FUNC = { FUNCIONA: ['Funciona', 'p-g'], TARDIA: ['No · compró después', 'p-a'], NUNCA: ['No · nunca compró', 'p-r'], OBSERVACION: ['En observación', 'p-n'] };
+const SEM = { ROJO: ['+45 hábiles', 'p-r'], AMARILLO: ['31–45 hábiles', 'p-a'], VERDE: ['en plazo', 'p-g'], 'EN SLA': ['≤45 hábiles', 'p-g'], 'FUERA SLA': ['fuera de SLA', 'p-r'] };
+const params = new URLSearchParams(location.search);
+if (params.get('embed') === '1') document.body.classList.add('embed');
+if (params.get('spv')) { S.spv = params.get('spv').toUpperCase(); S.bajaSpv = S.spv; }
+
+function sheetLink(gid, fila) { return D.cfg.sheetId ? `https://docs.google.com/spreadsheets/d/${D.cfg.sheetId}/edit#gid=${gid}` + (fila ? `&range=A${fila}` : '') : '#'; }
+function inQ(q) { return S.q === 'ANIO' || q === S.q; }
+function altasAnio() { return D.altas.filter(a => a.ff && a.ff.slice(0, 4) === String(D.cfg.anio)); }
+function altasQ() { return altasAnio().filter(a => inQ(a.q)); }
+function bajasOk() { return D.bajas.filter(b => b.existe && !b.previa); }
+function bajasQ() { return bajasOk().filter(b => inQ(b.q)); }
+function pendientes() { return bajasOk().filter(b => b.estado !== 'COMPLETADO'); }
+function spvOf(x) { return x.spv || 'SIN SUPERVISOR'; }
+function causaDe(a) { return a.obs ? a.obs.toUpperCase() : (a.sug ? 'Sugerida: ' + a.sug : 'Sin causa'); }
+
+/* ---------------- métricas ---------------- */
+function met(al, bj) {
+  const m = { altas: al.length, sla: 0, fuera: 0, conCausa: 0, dias: 0, func: 0, tard: 0, nunca: 0, obs: 0, bajas: bj.length, comp: 0, bsla: 0, pend: 0, rojo: 0, amar: 0, verde: 0, dh: 0 };
+  al.forEach(a => { m.dias += a.dias || 0; if (a.sla) m.sla++; else { m.fuera++; if (a.obs) m.conCausa++; }
+    if (a.func === 'FUNCIONA') m.func++; else if (a.func === 'TARDIA') m.tard++; else if (a.func === 'NUNCA') m.nunca++; else m.obs++; });
+  bj.forEach(b => { m.dh += b.dh || 0; if (b.estado === 'COMPLETADO') { m.comp++; if (b.sem === 'EN SLA') m.bsla++; } else { m.pend++; if (b.sem === 'ROJO') m.rojo++; else if (b.sem === 'AMARILLO') m.amar++; else m.verde++; } });
+  m.pSla = pct(m.sla, m.altas); m.pFunc = pct(m.func, m.altas - m.obs); m.pBsla = pct(m.bsla, m.comp); m.prom = m.altas ? m.dias / m.altas : null;
+  return m;
+}
+function colorPct(p, ok = 95, mid = 90) { return p == null ? 'var(--muted)' : p >= ok ? 'var(--green)' : p >= mid ? 'var(--amber)' : 'var(--red)'; }
+
+/* ---------------- navegación ---------------- */
+const TABS = [['resumen', 'Resumen'], ['altas', 'Altas'], ['bajas', 'Bajas'], ['equipo', 'Supervisores y promotores'], ['funcionan', 'Altas que funcionan'], ['calidad', 'Calidad de datos'], ['auditor', 'Auditor']];
+function goTab(t, extra) { if (extra) Object.assign(S, extra); S.tab = t; history.replaceState(null, '', '#' + t + location.search); render(); window.scrollTo({ top: 0 }); }
+function setQ(q) { S.q = q; render(); }
+function renderNav() {
+  const nRojo = pendientes().filter(b => b.sem === 'ROJO').length;
+  const nAlt = D.altasPend.filter(p => !p.existe && p.dias > D.cfg.slaAlta).length + altasAnio().filter(a => !a.sla && !a.obs).length;
+  const nCal = D.control.filter(c => c.sev === 'alta').length;
+  const badge = { altas: nAlt, bajas: nRojo, calidad: nCal };
+  $('#tabs').innerHTML = TABS.map(([k, l]) => `<button class="${S.tab === k ? 'on' : ''}" onclick="goTab('${k}')">${l}${badge[k] ? `<span class="n">${badge[k]}</span>` : ''}</button>`).join('');
+  $('#qsel').innerHTML = '<span>Trimestre</span>' + ['Q1', 'Q2', 'Q3', 'Q4', 'ANIO'].map(q => `<button class="${S.q === q ? 'on' : ''}" onclick="setQ('${q}')">${q === 'ANIO' ? 'Año' : q}</button>`).join('');
+}
+
+/* ---------------- gráficos SVG ---------------- */
+function barsMes() {
+  const al = altasAnio(), bj = bajasOk();
+  const A = Array(12).fill(0), B = Array(12).fill(0), P = Array(12).fill(0);
+  al.forEach(a => A[+a.ff.slice(5, 7) - 1]++);
+  bj.forEach(b => { if (b.ff && b.ff.slice(0, 4) === String(D.cfg.anio)) B[+b.ff.slice(5, 7) - 1]++; if (b.fi.slice(0, 4) === String(D.cfg.anio)) P[+b.fi.slice(5, 7) - 1]++; });
+  const last = Math.max(...A.map((v, i) => v || B[i] ? i : 0)) + 1;
+  const n = Math.max(last, 9), W = 640, H = 220, pl = 30, pb = 26, mx = Math.max(...A, ...B, 1) * 1.12;
+  const bw = (W - pl) / n, y = v => H - pb - v / mx * (H - pb - 12);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Altas y bajas por mes">`;
+  for (let g = 0; g <= 4; g++) { const v = Math.round(mx / 4 * g), yy = y(v); s += `<line x1="${pl}" x2="${W}" y1="${yy}" y2="${yy}" stroke="#E3D7C3" stroke-dasharray="2 3"/><text x="${pl - 6}" y="${yy + 3}" text-anchor="end">${v}</text>`; }
+  for (let i = 0; i < n; i++) {
+    const x = pl + i * bw + bw * .14, w = bw * .34;
+    s += `<rect x="${x}" y="${y(A[i])}" width="${w}" height="${H - pb - y(A[i])}" rx="3" fill="#2F7D4F"><title>${MES[i]}: ${A[i]} altas</title></rect>`;
+    s += `<rect x="${x + w + 2}" y="${y(B[i])}" width="${w}" height="${H - pb - y(B[i])}" rx="3" fill="#B4321F"><title>${MES[i]}: ${B[i]} bajas completadas (${P[i]} pedidas)</title></rect>`;
+    if (A[i]) s += `<text x="${x + w / 2}" y="${y(A[i]) - 4}" text-anchor="middle" style="fill:#2F7D4F">${A[i]}</text>`;
+    if (B[i]) s += `<text x="${x + w * 1.5 + 2}" y="${y(B[i]) - 4}" text-anchor="middle" style="fill:#B4321F">${B[i]}</text>`;
+    s += `<text x="${pl + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${MES[i]}</text>`;
+  }
+  return s + '</svg><div class="legend"><span><i style="background:#2F7D4F"></i>Altas</span><span><i style="background:#B4321F"></i>Bajas completadas</span></div>';
+}
+function histo(vals, cortes, labels, colores, titulo) {
+  const c = labels.map(() => 0);
+  vals.forEach(v => { let k = cortes.findIndex(t => v <= t); if (k < 0) k = labels.length - 1; c[k]++; });
+  const mx = Math.max(...c, 1), tot = vals.length || 1;
+  return c.map((v, i) => `<div class="hbar"><div>${labels[i]}</div><div class="b"><i style="width:${v / mx * 100}%;background:${colores[i]}"></i></div><div class="v">${v} <span class="muted">${Math.round(v / tot * 100)}%</span></div></div>`).join('');
+}
+function hbars(obj, color, onclick) {
+  const e = Object.entries(obj).sort((a, b) => b[1] - a[1]), mx = Math.max(1, ...e.map(x => x[1]));
+  if (!e.length) return '<div class="empty">Sin casos 🎉</div>';
+  return e.map(([k, v]) => `<div class="hbar" ${onclick ? `style="cursor:pointer" onclick="${onclick(k)}"` : ''}><div>${esc(k)}</div><div class="b"><i style="width:${v / mx * 100}%;background:${typeof color === 'function' ? color(k) : color}"></i></div><div class="v">${v}</div></div>`).join('');
+}
+
+/* ---------------- RESUMEN ---------------- */
+function vResumen() {
+  const m = met(altasQ(), bajasQ());
+  const pend = pendientes();
+  const pr = pend.filter(b => b.sem === 'ROJO').length, pa = pend.filter(b => b.sem === 'AMARILLO').length, pv = pend.filter(b => b.sem === 'VERDE').length;
+  const k = (lab, val, foot, extra = '', click = '') => `<div class="card kpi ${click ? 'click' : ''}" ${click ? `onclick="${click}"` : ''}><div class="lab">${lab}</div><div class="val">${val}</div>${extra}<div class="kf">${foot}</div></div>`;
+  const meter = (p, ok, mid) => `<div class="meter"><i style="width:${p || 0}%;background:${colorPct(p, ok, mid)}"></i></div>`;
+  let h = `<div class="grid k6">
+    ${k('Altas realizadas', nf(m.altas), `Promedio <b>${nf(m.prom, 1)}</b> días`, '', "goTab('altas',{altaFiltro:'todas'})")}
+    ${k('Altas en ≤ 3 días', `<span style="color:${colorPct(m.pSla)}">${pctTxt(m.pSla)}</span>`, `${nf(m.sla)} de ${nf(m.altas)} · SLA Galaxia 3 días`, meter(m.pSla, 95, 90), "goTab('altas',{altaFiltro:'fuera'})")}
+    ${k('Altas +3 días', nf(m.fuera), `Con causa cargada: <b class="${m.conCausa === m.fuera ? 'good' : 'bad'}">${m.conCausa}/${m.fuera}</b>`, '', "goTab('altas',{altaFiltro:'sincausa'})")}
+    ${k('Altas que funcionan', `<span style="color:${colorPct(m.pFunc, 80, 65)}">${pctTxt(m.pFunc)}</span>`, `Nunca compraron: <b class="bad">${m.nunca}</b> · tardías ${m.tard}`, meter(m.pFunc, 80, 65), "goTab('funcionan')")}
+    ${k('Bajas en ≤ 45 hábiles', `<span style="color:${colorPct(m.pBsla)}">${pctTxt(m.pBsla)}</span>`, `${nf(m.bsla)} de ${nf(m.comp)} completadas`, meter(m.pBsla, 95, 90), "goTab('bajas')")}
+    ${k('Bajas pendientes hoy', nf(pend.length), `<span class="pill p-r">${pr} rojo</span> <span class="pill p-a">${pa} amarillo</span> <span class="pill p-g">${pv} verde</span>`, '', "goTab('bajas')")}
+  </div>`;
+
+  // Qué hacer hoy
+  const al = altasAnio();
+  const items = [];
+  const pendV = D.altasPend.filter(p => !p.existe && p.dias > D.cfg.slaAlta);
+  if (pendV.length) items.push(['r', pendV.length, 'altas pedidas hace más de 3 días que no aparecen en la base', 'Revisar con CXC / administración. Pueden tener el CUIT mal cargado.', "goTab('altas',{altaFiltro:'pend'})"]);
+  const sc = al.filter(a => !a.sla && !a.obs);
+  if (sc.length) items.push(['r', sc.length, 'altas de más de 3 días sin causa en la columna M', 'Nivel 2 de auditoría: cada desvío necesita su causa (feriado, caída de sistema, ticket CXC…).', "goTab('altas',{altaFiltro:'sincausa'})"]);
+  const rojoSinPlan = pend.filter(b => (b.sem === 'ROJO' || b.sem === 'AMARILLO') && !b.plan);
+  if (pr) items.push(['r', pr, 'bajas pendientes con más de 45 días hábiles', `${rojoSinPlan.length} sin plan de acción · necesitan evidencia para el auditor.`, "goTab('bajas')"]);
+  const sigue = pend.filter(b => b.hlPost > 0);
+  if (sigue.length) items.push(['a', sigue.length, 'PDV con baja pedida que siguen comprando', 'Confirmar si la baja corresponde o anular el pedido.', "goTab('bajas',{bajaVista:'sigue'})"]);
+  const compAct = D.control.filter(c => c.tipo.indexOf('completada pero ACTIVA') >= 0);
+  if (compAct.length) items.push(['a', compAct.length, 'bajas marcadas COMPLETADO en la hoja pero activas en la base', 'Pedir la anulación en el sistema o corregir el status.', "goTab('calidad')"]);
+  const nunca = al.filter(a => a.func === 'NUNCA' && a.activo);
+  if (nunca.length) items.push(['a', nunca.length, 'altas activas que nunca compraron', 'Candidatas a visita del supervisor o a baja.', "goTab('funcionan')"]);
+  const agreg = al.filter(a => !a.enHoja && a.orig !== 'HOJA');
+  if (agreg.length) items.push(['b', agreg.length, 'altas que faltaban en la hoja ALTA', 'El script ya las agregó con su formato.', "goTab('altas',{altaFiltro:'agregadas'})"]);
+  const inex = D.bajas.filter(b => !b.existe);
+  if (inex.length) items.push(['a', inex.length, 'bajas con código inexistente en la base', 'Código mal cargado en el formulario.', "goTab('calidad')"]);
+  if (!items.length) items.push(['g', '✓', 'Todo al día', 'No hay pendientes críticos.', '']);
+  h += `<h2 class="sec">Qué hay que hacer hoy <small>se actualiza con cada corrida del script</small></h2><div class="alerts">` +
+    items.map(i => `<div class="alert ${i[0]}" onclick="${i[4]}"><div class="num">${i[1]}</div><div class="txt"><b>${i[2]}</b><div>${i[3]}</div></div><div class="go">ver →</div></div>`).join('') + '</div>';
+
+  h += `<div class="grid k2" style="margin-top:14px">
+    <div class="card"><h2 class="sec" style="margin-top:0">Altas y bajas por mes</h2>${barsMes()}</div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Días de resolución <small>${S.q === 'ANIO' ? 'año' : S.q}</small></h2>
+      <div class="small muted" style="margin-bottom:4px">ALTAS · días corridos</div>
+      ${histo(altasQ().map(a => a.dias), [0, 1, 2, 3, 7, 14], ['0 días', '1 día', '2 días', '3 días', '4–7 días', '8–14 días', '15+ días'], ['#2F7D4F', '#2F7D4F', '#2F7D4F', '#6BA67F', '#C98300', '#B4321F', '#B4321F'])}
+      <div class="small muted" style="margin:12px 0 4px">BAJAS · días hábiles (completadas y pendientes)</div>
+      ${histo(bajasQ().map(b => b.dh), [15, 30, 45, 90], ['0–15', '16–30', '31–45', '46–90', '+90'], ['#2F7D4F', '#6BA67F', '#C98300', '#B4321F', '#7A1D10'])}
+    </div></div>`;
+
+  // supervisores
+  const spvs = [...new Set(altasQ().map(spvOf).concat(bajasQ().map(spvOf)))].filter(s => s !== 'SIN SUPERVISOR').sort();
+  h += `<h2 class="sec">Por supervisor <small>${S.q === 'ANIO' ? 'año' : S.q}</small></h2><div class="grid k${Math.min(3, Math.max(2, spvs.length))}">` + spvs.map(s => {
+    const x = met(altasQ().filter(a => spvOf(a) === s), bajasQ().filter(b => spvOf(b) === s));
+    const pp = pend.filter(b => spvOf(b) === s);
+    return `<div class="card spvcard"><h3>${esc(s)}</h3>
+      <div class="spvrow"><span>Altas</span><b>${x.altas}</b></div>
+      <div class="spvrow"><span>Altas en ≤3 días</span><b style="color:${colorPct(x.pSla)}">${pctTxt(x.pSla)}</b></div>
+      <div class="spvrow"><span>Altas que funcionan</span><b style="color:${colorPct(x.pFunc, 80, 65)}">${pctTxt(x.pFunc)}</b></div>
+      <div class="spvrow"><span>Bajas completadas en ≤45 hábiles</span><b style="color:${colorPct(x.pBsla)}">${pctTxt(x.pBsla)}</b></div>
+      <div class="spvrow"><span>Bajas pendientes hoy</span><b>${pp.length} <span class="pill p-r">${pp.filter(b => b.sem === 'ROJO').length} rojo</span></b></div>
+      <div style="margin-top:8px"><button class="btn" onclick="goTab('equipo',{spv:'${esc(s)}'})">Ver promotores →</button></div></div>`;
+  }).join('') + '</div>';
+  return h;
+}
+
+/* ---------------- ALTAS ---------------- */
+function selSpvProm(lista) {
+  const spvs = [...new Set(lista.map(spvOf))].sort();
+  const proms = [...new Set(lista.filter(a => !S.spv || spvOf(a) === S.spv).map(a => a.prom).filter(Boolean))].sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999));
+  return `<select onchange="S.spv=this.value;S.prom='';render()"><option value="">Todos los supervisores</option>${spvs.map(s => `<option ${S.spv === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+    <select onchange="S.prom=this.value;render()"><option value="">Todos los promotores</option>${proms.map(p => `<option ${S.prom === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
+    <input placeholder="Buscar código, razón social…" value="${esc(S.txt)}" oninput="S.txt=this.value;clearTimeout(window._t);window._t=setTimeout(render,250)">`;
+}
+function filtroComun(x) {
+  if (S.spv && spvOf(x) !== S.spv) return false;
+  if (S.prom && x.prom !== S.prom) return false;
+  if (S.txt) { const t = S.txt.toUpperCase(); if (!((x.c || '') + ' ' + (x.rs || '') + ' ' + (x.prom || '') + ' ' + (x.id || '')).toUpperCase().includes(t)) return false; }
+  return true;
+}
+function vAltas() {
+  const base = altasQ();
+  const F = {
+    todas: ['Todas', a => true], fuera: ['+3 días', a => !a.sla], sincausa: ['+3 días sin causa', a => !a.sla && !a.obs],
+    nofunc: ['No funcionan', a => a.func === 'NUNCA' || a.func === 'TARDIA'], agregadas: ['Agregadas por el script', a => !a.enHoja && a.orig !== 'HOJA'],
+    subcanal: ['Subcanal ≠ árbol', a => a.subOk === false], pend: ['Pendientes en base', null]
+  };
+  const pendL = D.altasPend.filter(p => filtroComun({ ...p, prom: '', spv: '' }) || !S.spv);
+  let h = `<div class="chips">` + Object.entries(F).map(([k, [l, f]]) => `<span class="chip ${S.altaFiltro === k ? 'on' : ''}" onclick="S.altaFiltro='${k}';render()">${l}<span class="c">${f ? base.filter(f).length : pendL.length}</span></span>`).join('') + `</div>`;
+  h += `<div class="filters">${selSpvProm(base)}<button class="btn" onclick="csvAltas()">⬇ CSV</button></div>`;
+  if (S.altaFiltro === 'pend') {
+    h += `<div class="note" style="margin-bottom:10px">Altas cargadas en el formulario que <b>no encuentro en BASE CLIENTES</b> (ni por CUIT/DNI ni por nombre). El reloj de 3 días sigue corriendo. Si figura "CUIT ya existe", el cliente estaba dado de alta antes (posible reactivación).</div>`;
+    h += tabla(['Pedido', 'Días', 'Promotor', 'Razón social', 'Fantasía', 'CUIT/DNI', 'Localidad', 'Situación'],
+      D.altasPend.filter(p => !S.txt || (p.rs + p.id + p.quien).toUpperCase().includes(S.txt.toUpperCase())).sort((a, b) => b.dias - a.dias).map(p => [fd(p.f), `<span class="pill ${p.dias > 3 ? 'p-r' : 'p-a'}">${p.dias} d</span>`, esc(p.quien), esc(p.rs), esc(p.fant), `<span class="code">${esc(p.id)}</span>`, esc(p.loc),
+        p.existe ? `<span class="pill p-b">CUIT ya existe: ${esc(p.cands.join(', '))}</span>` : (p.cargas > 1 ? `<span class="pill p-n">${p.cargas} cargas</span>` : '')]));
+    return h;
+  }
+  const L = base.filter(F[S.altaFiltro][1]).filter(filtroComun);
+  if (S.altaFiltro === 'fuera' || S.altaFiltro === 'sincausa') {
+    const causas = {}; base.filter(a => !a.sla).filter(filtroComun).forEach(a => { const c = causaDe(a); causas[c] = (causas[c] || 0) + 1; });
+    const porProm = {}; base.filter(a => !a.sla).filter(filtroComun).forEach(a => { porProm[a.prom || '—'] = (porProm[a.prom || '—'] || 0) + 1; });
+    h += `<div class="grid k2" style="margin-bottom:14px"><div class="card"><h2 class="sec" style="margin-top:0">Análisis de causas <small>altas de más de 3 días</small></h2>
+      ${hbars(causas, k => k.startsWith('Sugerida') || k === 'Sin causa' ? '#C98300' : '#2A5CAA')}
+      <div class="small muted" style="margin-top:8px">Azul = causa cargada en la columna M · Ámbar = causa sugerida por el script (falta confirmarla en M).</div></div>
+      <div class="card"><h2 class="sec" style="margin-top:0">¿Quién demora? <small>altas +3 días por promotor</small></h2>${hbars(porProm, '#B4321F', k => `S.prom='${esc(k)}';render()`)}</div></div>`;
+  }
+  h += tabla(['Código', 'Razón social', 'Promotor', 'Subcanal', 'Pedido', 'Alta', 'Días', 'Causa (col. M)', 'Funciona', 'HL 1er mes', ''],
+    L.sort((a, b) => (b.dias - a.dias) || (b.ff > a.ff ? 1 : -1)).map(a => [
+      `<span class="code">${esc(a.c)}</span>`, esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : ''), esc(a.prom), esc(a.sub) + (a.subOk === false ? ` <span class="pill p-a" title="Árbol del formulario: ${esc(a.arbol)}">≠ árbol</span>` : ''),
+      fd(a.fi) + (a.cargas > 1 ? ` <span class="pill p-n">${a.cargas}×</span>` : ''), fd(a.ff),
+      `<span class="pill ${a.sla ? 'p-g' : 'p-r'}">${a.dias} d</span>`, a.sla ? '' : (a.obs ? esc(a.obs) : `<span class="pill p-a">sugerida: ${esc(a.sug)}</span>`),
+      `<span class="pill ${FUNC[a.func][1]}">${FUNC[a.func][0]}</span>`, { v: nf((a.hl0 || 0) + (a.hl1 || 0), 2), n: 1 },
+      a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank" title="Abrir fila en la hoja ALTA">fila ${a.fila}</a>` : (a.enHoja ? '' : '<span class="pill p-b">nueva</span>')
+    ]));
+  return h;
+}
+function tabla(cols, rows) {
+  if (!rows.length) return '<div class="card empty">No hay casos con este filtro.</div>';
+  return `<div class="tbl-wrap"><table><thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>` +
+    rows.map(r => '<tr>' + r.map(c => (c && typeof c === 'object') ? `<td class="num">${c.v}</td>` : `<td>${c == null ? '' : c}</td>`).join('') + '</tr>').join('') + '</tbody></table></div>' +
+    `<div class="small muted" style="margin-top:6px">${rows.length} filas</div>`;
+}
+
+/* ---------------- BAJAS ---------------- */
+function vBajas() {
+  const pend = pendientes().filter(b => !S.bajaSpv || spvOf(b) === S.bajaSpv).filter(filtroComunB);
+  const spvs = [...new Set(bajasOk().map(spvOf))].sort();
+  let h = `<div class="filters"><select onchange="S.bajaSpv=this.value;render()"><option value="">Todos los supervisores</option>${spvs.map(s => `<option ${S.bajaSpv === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+    <input placeholder="Buscar código o razón social…" value="${esc(S.txt)}" oninput="S.txt=this.value;clearTimeout(window._t);window._t=setTimeout(render,250)">
+    <span class="chip ${S.bajaVista === 'sigue' ? 'on' : ''}" onclick="S.bajaVista=S.bajaVista==='sigue'?'':'sigue';render()">Siguen comprando<span class="c">${pendientes().filter(b => b.hlPost > 0).length}</span></span>
+    <button class="btn" onclick="csvBajas()">⬇ CSV</button></div>`;
+  const P = S.bajaVista === 'sigue' ? pend.filter(b => b.hlPost > 0) : pend;
+  h += `<h2 class="sec" style="margin-top:4px">Semáforo de bajas pendientes <small>hoy · 45 días hábiles desde el 1er pedido, el reloj no se detiene</small></h2>`;
+  const col = (cls, tit, arr) => `<div class="col ${cls}"><h3>${tit}<span>${arr.length}</span></h3>${arr.sort((a, b) => b.dh - a.dh).map(cardBaja).join('') || '<div class="empty">—</div>'}</div>`;
+  h += `<div class="board">${col('r', '🔴 +45 hábiles', P.filter(b => b.sem === 'ROJO'))}${col('a', '🟡 31 a 45', P.filter(b => b.sem === 'AMARILLO'))}${col('g', '🟢 0 a 30', P.filter(b => b.sem === 'VERDE'))}</div>`;
+  const comp = bajasQ().filter(b => b.estado === 'COMPLETADO').filter(b => !S.bajaSpv || spvOf(b) === S.bajaSpv).filter(filtroComunB);
+  const m = met([], comp);
+  h += `<h2 class="sec">Bajas completadas <small>${S.q === 'ANIO' ? 'año' : S.q} · ${m.comp} bajas · <b style="color:${colorPct(m.pBsla)}">${pctTxt(m.pBsla)}</b> en ≤45 hábiles</small></h2>`;
+  h += tabla(['Código', 'Razón social', 'Supervisor', 'Promotor', 'Motivo', 'Pedido', 'Anulación', 'Hábiles', 'SLA', 'Plan / comentario', ''],
+    comp.sort((a, b) => b.dh - a.dh).map(b => [`<span class="code">${esc(b.c)}</span>`, esc(b.rs), esc(b.spv), esc(b.prom), `<span class="small">${esc(b.mot)}</span>`, fd(b.fi) + (b.arrastre ? ' <span class="pill p-n">arrastre</span>' : ''), fd(b.ff),
+      { v: b.dh }, `<span class="pill ${SEM[b.sem][1]}">${SEM[b.sem][0]}</span>`, `<span class="small">${esc(b.plan || b.com || '')}</span>`, b.fila ? `<a href="${sheetLink(D.cfg.gidBaja, b.fila)}" target="_blank">fila ${b.fila}</a>` : '']));
+  return h;
+}
+function filtroComunB(b) { if (!S.txt) return true; return ((b.c || '') + ' ' + (b.rs || '') + ' ' + (b.prom || '')).toUpperCase().includes(S.txt.toUpperCase()); }
+function cardBaja(b) {
+  const w = Math.min(100, b.dh / 60 * 100), col = b.sem === 'ROJO' ? 'var(--red)' : b.sem === 'AMARILLO' ? 'var(--amber)' : 'var(--green)';
+  const tags = [];
+  if (b.edf) Object.entries(b.edf).forEach(([k, v]) => tags.push(`<span class="pill p-b">${esc(k)} ${nf(v)}</span>`));
+  if (b.deuda) tags.push(`<span class="pill p-r">Deuda $${nf(b.deuda.saldo)}</span>`);
+  if (b.hlPost > 0) tags.push(`<span class="pill p-a">Sigue comprando · ${nf(b.hlPost, 2)} HL</span>`);
+  if (b.pedidos > 1) tags.push(`<span class="pill p-n">${b.pedidos} pedidos</span>`);
+  if (!b.enHoja) tags.push(`<span class="pill p-n">agregada por script</span>`);
+  if (b.ok) tags.push(`<span class="pill p-g">✓ OK supervisor</span>`);
+  if (b.evid) tags.push(`<a class="pill p-g" href="${esc(b.evid)}" target="_blank">📎 evidencia</a>`);
+  else if (b.sem === 'ROJO') tags.push(`<span class="pill p-r">sin evidencia</span>`);
+  return `<div class="bc"><div class="t"><b>${esc(b.c)}</b><span class="pill ${SEM[b.sem][1]}">${b.dh} hábiles</span></div>
+    <div class="rs">${esc(b.rs)}</div>
+    <div class="meta">${esc(b.spv)} · ${esc(b.prom)} · pedido ${fd(b.fi)} · vence ${fd(b.fo)}</div>
+    <div class="prog"><i style="width:${w}%;background:${col}"></i><span style="position:absolute;left:${45 / 60 * 100}%;top:-2px;bottom:-2px;border-left:2px dashed #1E1912;opacity:.35"></span></div>
+    <div class="meta">${esc(b.mot)}${b.ret && !/NIGUNO|NINGUNO/.test(b.ret) ? ' · retirar ' + esc(b.ret) : ''}</div>
+    <div class="plan ${b.plan ? '' : 'no'}">${b.plan ? '📝 ' + esc(b.plan) + (b.resp ? ` <span class="muted">· ${esc(b.resp)}${b.dl ? ' · ' + fd(b.dl) : ''}</span>` : '') : '⚠ Sin plan de acción — cargarlo en la hoja BAJA'}</div>
+    <div class="tags">${tags.join('')}${b.fila ? `<a class="pill p-n" href="${sheetLink(D.cfg.gidBaja, b.fila)}" target="_blank">fila ${b.fila} ↗</a>` : ''}</div></div>`;
+}
+
+/* ---------------- EQUIPO ---------------- */
+function vEquipo() {
+  const al = altasQ(), bj = bajasQ(), pend = pendientes();
+  const spvs = [...new Set(al.map(spvOf).concat(bj.map(spvOf)))].sort();
+  let h = `<div class="filters"><select onchange="S.spv=this.value;render()"><option value="">Todos los supervisores</option>${spvs.map(s => `<option ${S.spv === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+    <span class="muted small">Clic en un promotor para ver sus altas.</span></div>`;
+  const rows = [];
+  spvs.filter(s => !S.spv || s === S.spv).forEach(s => {
+    const proms = [...new Set(al.concat(bj).filter(x => spvOf(x) === s).map(x => x.prom || '—'))].sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999));
+    proms.forEach(p => rows.push(fila(s, p, al.filter(a => spvOf(a) === s && (a.prom || '—') === p), bj.filter(b => spvOf(b) === s && (b.prom || '—') === p), pend.filter(b => spvOf(b) === s && (b.prom || '—') === p), false)));
+    rows.push(fila(s, 'TOTAL ' + s, al.filter(a => spvOf(a) === s), bj.filter(b => spvOf(b) === s), pend.filter(b => spvOf(b) === s), true));
+  });
+  function fila(s, p, a, b, pp, tot) {
+    const m = met(a, b);
+    const cell = (v, ok, mid) => `<b style="color:${colorPct(v, ok, mid)}">${pctTxt(v)}</b>`;
+    return `<tr ${tot ? 'style="background:#F3EBDC;font-weight:600"' : `style="cursor:pointer" onclick="goTab('altas',{spv:'${esc(s)}',prom:'${esc(p)}',altaFiltro:'todas'})"`}>
+      <td>${tot ? '' : esc(s)}</td><td>${esc(p)}</td><td class="num">${m.altas}</td><td class="num">${cell(m.pSla)}</td><td class="num">${m.fuera ? `<span class="pill p-r">${m.fuera}</span>` : '0'}</td><td class="num">${nf(m.prom, 1)}</td>
+      <td class="num">${cell(m.pFunc, 80, 65)}</td><td class="num">${m.nunca}</td><td class="num">${m.comp}</td><td class="num">${cell(m.pBsla)}</td>
+      <td class="num">${pp.length}</td><td class="num">${pp.filter(x => x.sem === 'ROJO').length ? `<span class="pill p-r">${pp.filter(x => x.sem === 'ROJO').length}</span>` : '0'}</td><td class="num">${m.altas - m.comp}</td></tr>`;
+  }
+  h += `<div class="tbl-wrap" style="max-height:none"><table><thead><tr><th>Supervisor</th><th>Promotor</th><th class="num">Altas</th><th class="num">% ≤3d</th><th class="num">+3 días</th><th class="num">Prom. días</th><th class="num">% funcionan</th><th class="num">Nunca compró</th><th class="num">Bajas compl.</th><th class="num">% ≤45h</th><th class="num">Pend. hoy</th><th class="num">Rojo</th><th class="num">Neto</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+  // evolución por Q
+  h += `<h2 class="sec">Evolución por trimestre</h2><div class="tbl-wrap" style="max-height:none"><table><thead><tr><th>Trimestre</th><th class="num">Altas</th><th class="num">% ≤3d</th><th class="num">+3 días con causa</th><th class="num">% funcionan</th><th class="num">Bajas pedidas</th><th class="num">Completadas</th><th class="num">% ≤45h</th><th class="num">Neto</th></tr></thead><tbody>` +
+    ['Q1', 'Q2', 'Q3', 'Q4'].map(q => { const a = altasAnio().filter(x => x.q === q && (!S.spv || spvOf(x) === S.spv)), b = bajasOk().filter(x => x.q === q && (!S.spv || spvOf(x) === S.spv)), m = met(a, b);
+      return `<tr><td><b>${q}</b></td><td class="num">${m.altas}</td><td class="num" style="color:${colorPct(m.pSla)}">${pctTxt(m.pSla)}</td><td class="num">${m.conCausa}/${m.fuera}</td><td class="num">${pctTxt(m.pFunc)}</td><td class="num">${m.bajas}</td><td class="num">${m.comp}</td><td class="num" style="color:${colorPct(m.pBsla)}">${pctTxt(m.pBsla)}</td><td class="num">${m.altas - m.comp}</td></tr>`; }).join('') + '</tbody></table></div>';
+  return h;
+}
+
+/* ---------------- FUNCIONAN ---------------- */
+function vFuncionan() {
+  const al = altasQ().filter(filtroComun), m = met(al, []);
+  const base = m.altas - m.obs || 1;
+  const bar = (lab, v, color, sub) => `<div class="hbar"><div>${lab}<div class="small muted">${sub || ''}</div></div><div class="b" style="height:22px"><i style="width:${v / (m.altas || 1) * 100}%;background:${color}"></i></div><div class="v">${v}</div></div>`;
+  let h = `<div class="filters">${selSpvProm(altasQ())}</div>
+  <div class="grid k2"><div class="card"><h2 class="sec" style="margin-top:0">Embudo de altas <small>${S.q === 'ANIO' ? 'año' : S.q}</small></h2>
+    ${bar('Altas realizadas', m.altas, '#1E1912')}
+    ${bar('Compraron en ≤30 días', m.func, '#2F7D4F', pctTxt(pct(m.func, base)) + ' de las evaluables')}
+    ${bar('Compraron después', m.tard, '#C98300', pctTxt(pct(m.tard, base)))}
+    ${bar('Nunca compraron', m.nunca, '#B4321F', pctTxt(pct(m.nunca, base)))}
+    ${bar('En observación', m.obs, '#A99B86', 'alta de hace menos de 30 días')}
+    <div class="small muted" style="margin-top:8px">"Funciona" = compró en el mes del alta o en el siguiente (la hoja VENTA viene mensual, equivale a ~30 días). Último mes de venta cargado: ${esc(D.cfg.ultimoMesVenta)}.</div></div>
+    <div class="card"><h2 class="sec" style="margin-top:0">% que funciona por promotor</h2>${(() => {
+      const g = {}; al.forEach(a => { const k = a.prom || '—'; g[k] = g[k] || { t: 0, f: 0, o: 0 }; g[k].t++; if (a.func === 'FUNCIONA') g[k].f++; if (a.func === 'OBSERVACION') g[k].o++; });
+      return Object.entries(g).filter(([k, v]) => v.t - v.o > 0).sort((a, b) => b[1].f / (b[1].t - b[1].o) - a[1].f / (a[1].t - a[1].o)).map(([k, v]) => { const p = pct(v.f, v.t - v.o); return `<div class="hbar" style="cursor:pointer" onclick="S.prom='${esc(k)}';render()"><div>${esc(k)} <span class="muted small">(${v.t - v.o})</span></div><div class="b"><i style="width:${p}%;background:${colorPct(p, 80, 65)}"></i></div><div class="v">${pctTxt(p)}</div></div>`; }).join('');
+    })()}</div></div>`;
+  h += `<h2 class="sec">Altas activas que nunca compraron <small>para decidir: visita del supervisor, reactivar o dar de baja</small></h2>`;
+  h += tabla(['Código', 'Razón social', 'Supervisor', 'Promotor', 'Subcanal', 'Alta', 'Días desde el alta', ''], al.filter(a => a.func === 'NUNCA' && a.activo !== false).sort((a, b) => a.ff > b.ff ? 1 : -1)
+    .map(a => [`<span class="code">${esc(a.c)}</span>`, esc(a.rs), esc(a.spv), esc(a.prom), esc(a.sub), fd(a.ff), { v: Math.round((new Date(D.hoy) - new Date(a.ff)) / 864e5) }, a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank">fila ${a.fila}</a>` : '']));
+  h += `<h2 class="sec">No compraron en 30 días pero compraron después</h2>`;
+  h += tabla(['Código', 'Razón social', 'Promotor', 'Alta', 'HL desde el alta'], al.filter(a => a.func === 'TARDIA').map(a => [`<span class="code">${esc(a.c)}</span>`, esc(a.rs), esc(a.prom), fd(a.ff), { v: nf(a.hlTot, 2) }]));
+  return h;
+}
+
+/* ---------------- CALIDAD ---------------- */
+function vCalidad() {
+  const g = {}; D.control.forEach(c => { if (S.ctlSev && c.sev !== S.ctlSev) return; (g[c.tipo] = g[c.tipo] || { sev: c.sev, l: [] }).l.push(c); });
+  const ord = { alta: 0, media: 1, baja: 2 };
+  const cnt = s => D.control.filter(c => c.sev === s).length;
+  let h = `<div class="chips" style="margin-bottom:12px">${[['', 'Todas', D.control.length], ['alta', 'Prioridad alta', cnt('alta')], ['media', 'Media', cnt('media')], ['baja', 'Baja', cnt('baja')]].map(([k, l, n]) => `<span class="chip ${S.ctlSev === k ? 'on' : ''}" onclick="S.ctlSev='${k}';render()">${l}<span class="c">${n}</span></span>`).join('')}</div>
+    <div class="note" style="margin-bottom:12px">Lo mismo está en la hoja <b>CONTROL ABM</b> del Sheet. Cada corrida del script la regenera.</div>`;
+  h += Object.entries(g).sort((a, b) => ord[a[1].sev] - ord[b[1].sev] || b[1].l.length - a[1].l.length).map(([t, x]) => `<details class="grp"><summary><span class="cnt ${x.sev === 'alta' ? 'bad' : x.sev === 'media' ? 'warn' : 'muted'}">${x.l.length}</span><span style="flex:1"><b>${esc(t)}</b></span><span class="pill ${x.sev === 'alta' ? 'p-r' : x.sev === 'media' ? 'p-a' : 'p-n'}">${x.sev}</span></summary>
+    <div class="body">${tabla(['Código / CUIT', 'Detalle'], x.l.map(c => [`<span class="code">${esc(c.ref)}</span>`, esc(c.det)]))}</div></details>`).join('');
+  return h || '<div class="card empty">Sin observaciones 🎉</div>';
+}
+
+/* ---------------- AUDITOR ---------------- */
+function vAuditor() {
+  const al = altasQ(), bj = bajasQ(), m = met(al, bj);
+  let h = `<div class="filters noprint"><button class="btn dark" onclick="window.print()">🖨 Imprimir / PDF</button><button class="btn" onclick="csvAltas(true)">⬇ Altas CSV</button><button class="btn" onclick="csvBajas(true)">⬇ Bajas CSV</button><span class="muted small">Elegí el trimestre arriba.</span></div>
+  <div class="card"><h2 class="sec" style="margin-top:0">Evidencia ABM · ${S.q === 'ANIO' ? 'Año ' + D.cfg.anio : S.q + ' ' + D.cfg.anio} <small>generado ${fd(D.hoy)}</small></h2>
+  <div class="grid k4">
+    <div><div class="lab small muted">ALTAS</div><div style="font-family:var(--serif);font-size:28px;font-weight:800">${m.altas}</div><div class="small">${pctTxt(m.pSla)} en ≤3 días · ${m.fuera} desvíos (${m.conCausa} con causa)</div></div>
+    <div><div class="lab small muted">PROMEDIO ALTA</div><div style="font-family:var(--serif);font-size:28px;font-weight:800">${nf(m.prom, 1)} d</div><div class="small">días corridos formulario → sistema</div></div>
+    <div><div class="lab small muted">BAJAS COMPLETADAS</div><div style="font-family:var(--serif);font-size:28px;font-weight:800">${m.comp}</div><div class="small">${pctTxt(m.pBsla)} en ≤45 días hábiles</div></div>
+    <div><div class="lab small muted">BAJAS PENDIENTES</div><div style="font-family:var(--serif);font-size:28px;font-weight:800">${m.pend}</div><div class="small">${m.rojo} con +45 hábiles</div></div>
+  </div>
+  <p class="small" style="margin-top:12px"><b>Criterios.</b> <b>Alta</b>: desde la primera carga del formulario hasta la fecha de alta en el sistema (BASE CLIENTES, "Alta fecha"); SLA ≤ ${D.cfg.slaAlta} días corridos; los desvíos llevan su causa en la columna M de la hoja ALTA.
+  <b>Baja</b>: desde el primer pedido del formulario hasta la fecha de anulación en el sistema ("Anulado fecha"); SLA ≤ ${D.cfg.slaBaja} días hábiles (sin sábados, domingos ni ${D.cfg.feriados.length} feriados cargados); el reloj no se detiene por EDF robado ni por la espera del OK de CMQ. Los casos de más de 45 días llevan plan de acción, responsable, deadline y evidencia en la hoja BAJA.</p></div>`;
+  h += `<h2 class="sec">Altas con desvío (+3 días)</h2>` + tabla(['Código', 'Razón social', 'Promotor', 'Pedido', 'Alta', 'Días', 'Causa'], al.filter(a => !a.sla).map(a => [a.c, esc(a.rs), esc(a.prom), fd(a.fi), fd(a.ff), { v: a.dias }, esc(a.obs || '(sugerida) ' + a.sug)]));
+  h += `<h2 class="sec">Bajas con más de 45 días hábiles</h2>` + tabla(['Código', 'Razón social', 'Supervisor', 'Pedido', 'Anulación', 'Hábiles', 'Estado', 'Plan de acción', 'Responsable', 'Deadline', 'Evidencia'],
+    bj.filter(b => b.dh > D.cfg.slaBaja).sort((a, b) => b.dh - a.dh).map(b => [b.c, esc(b.rs), esc(b.spv), fd(b.fi), fd(b.ff) || '—', { v: b.dh }, esc(b.estado), esc(b.plan || '—'), esc(b.resp || ''), fd(b.dl), b.evid ? `<a href="${esc(b.evid)}" target="_blank">ver</a>` : '<span class="bad">falta</span>']));
+  h += `<h2 class="sec">Todas las altas del período</h2>` + tabla(['Q', 'Código', 'Razón social', 'Promotor', 'Pedido', 'Alta', 'Días', '≤3d'], al.map(a => [a.q, a.c, esc(a.rs), esc(a.prom), fd(a.fi), fd(a.ff), { v: a.dias }, a.sla ? 'SÍ' : 'NO']));
+  h += `<h2 class="sec">Todas las bajas del período</h2>` + tabla(['Q', 'Código', 'Razón social', 'Motivo', 'Pedido', 'Anulación', 'Hábiles', 'Estado'], bj.map(b => [b.q, b.c, esc(b.rs), esc(b.mot), fd(b.fi), fd(b.ff), { v: b.dh }, esc(b.estado)]));
+  return h;
+}
+
+/* ---------------- CSV ---------------- */
+function csv(nombre, cols, rows) {
+  const e = v => { v = v == null ? '' : String(v); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const txt = '﻿' + [cols.join(';')].concat(rows.map(r => r.map(e).join(';'))).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' })); a.download = nombre; a.click();
+}
+function csvAltas(todo) {
+  const L = todo ? altasQ() : altasQ().filter(filtroComun);
+  csv(`altas_${S.q}_${D.hoy}.csv`, ['Q', 'Codigo', 'Razon social', 'Canal', 'Subcanal', 'Supervisor', 'Promotor', 'Pedido form', 'Alta sistema', 'Dias corridos', 'Dias habiles', 'En SLA 3d', 'Causa col M', 'Causa sugerida', 'Cargas form', 'Funciona', 'HL mes alta', 'HL mes sig', 'HL desde alta'],
+    L.map(a => [a.q, a.c, a.rs, a.canal, a.sub, a.spv, a.prom, a.fi, a.ff, a.dias, a.dh, a.sla ? 'SI' : 'NO', a.obs, a.sug, a.cargas, FUNC[a.func][0], String(a.hl0).replace('.', ','), String(a.hl1).replace('.', ','), String(a.hlTot).replace('.', ',')]));
+}
+function csvBajas(todo) {
+  const L = todo ? bajasQ() : bajasOk().filter(b => inQ(b.q) || b.estado !== 'COMPLETADO');
+  csv(`bajas_${S.q}_${D.hoy}.csv`, ['Q', 'Codigo', 'Razon social', 'Canal', 'Supervisor', 'Promotor', 'Motivo', 'Pedido form', 'Anulacion sistema', 'Fecha objetivo 45h', 'Dias habiles', 'Dias corridos', 'Estado', 'Semaforo', 'Plan de accion', 'Responsable', 'Deadline', 'Evidencia', 'Pedidos form', 'HL post pedido'],
+    L.map(b => [b.q, b.c, b.rs, b.canal, b.spv, b.prom, b.mot, b.fi, b.ff, b.fo, b.dh, b.dc, b.estado, b.sem, b.plan, b.resp, b.dl, b.evid, b.pedidos, String(b.hlPost || 0).replace('.', ',')]));
+}
+
+/* ---------------- render ---------------- */
+function render() {
+  if (!D) return;
+  renderNav();
+  const V = { resumen: vResumen, altas: vAltas, bajas: vBajas, equipo: vEquipo, funcionan: vFuncionan, calidad: vCalidad, auditor: vAuditor };
+  $('#app').innerHTML = TABS.map(([k]) => `<section class="view ${S.tab === k ? 'on' : ''}" id="v-${k}">${S.tab === k ? V[k]() : ''}</section>`).join('');
+  const inp = document.querySelector(`#v-${S.tab} .filters input`);
+  if (inp && document.activeElement === document.body && S.txt) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+}
+async function init() {
+  try {
+    const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    D = await r.json();
+  } catch (e) {
+    $('#app').innerHTML = `<div class="card empty">No pude leer <b>data.json</b> (${esc(e.message)}). Corré “Actualizar todo” desde el menú 📋 ABM Galaxia del Sheet.</div>`;
+    return;
+  }
+  const g = new Date(D.generado);
+  $('#sub').innerHTML = `Actualizado ${g.toLocaleDateString('es-AR')} ${g.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} · ${D.altas.length} altas · ${D.bajas.length} bajas · SLA altas ${D.cfg.slaAlta} días corridos · bajas ${D.cfg.slaBaja} hábiles`;
+  $('#lnkSheet').href = sheetLink(D.cfg.gidAlta);
+  $('#foot').innerHTML = `ABM Galaxia · datos del Sheet "ABM 2026 ZUPPA" (RTA FORMULARIO + BASE CLIENTES + ALTA + BAJA + VENTA). El script corre todos los días a las 7 h y con cada formulario.`;
+  const h = location.hash.replace('#', ''); if (TABS.some(t => t[0] === h)) S.tab = h;
+  render();
+}
+window.addEventListener('hashchange', () => { const h = location.hash.replace('#', ''); if (D && TABS.some(t => t[0] === h) && h !== S.tab) { S.tab = h; render(); } });
+init();
+</script>
+</body>
+</html>
