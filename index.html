@@ -45,6 +45,8 @@ aside.side{overflow-y:auto;background:var(--cream);border-right:1px solid var(--
 .qsel .msel{grid-column:1/-1;margin-top:4px;font-family:var(--sans);font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid var(--line2);background:#fff;color:var(--ink)}
 .qsel .msel option{color:#16213A}
 .embed .qsel{width:auto;display:flex;flex-wrap:wrap;gap:4px} .embed .qsel .msel{margin:0;width:auto}
+.chips.vista{margin-bottom:12px} .chips.vista .chip{font-size:12.5px;padding:8px 14px}
+table.rta td{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .geo{font-size:11px;white-space:nowrap;text-decoration:none} .geo:hover{text-decoration:underline}
 .formbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(90deg,#A51F36,#C62839 60%,#2BB5AA);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:14px}
 .formbar .btn{background:#fff}
@@ -224,7 +226,7 @@ details.grp .body{padding:0 14px 12px}
 <div id="modal"></div>
 <script>
 'use strict';
-const S = { tab: 'resumen', q: 'ANIO', mes: '', solTipo: '', solEst: '', consTipo: 'altas', consMet: 'n', spv: '', prom: '', txt: '', altaFiltro: 'todas', ctlSev: '', mapModo: 'ambas', mapVista: 'loc', etapa: 'TODAS', mesSel: '', hbStatus: '', hbAct: false, alertaVista: 'todas' };
+const S = { tab: 'resumen', solVista: 'seg', rtaTipo: '', q: 'ANIO', mes: '', solTipo: '', solEst: '', consTipo: 'altas', consMet: 'n', spv: '', prom: '', txt: '', altaFiltro: 'todas', ctlSev: '', mapModo: 'ambas', mapVista: 'loc', etapa: 'TODAS', mesSel: '', hbStatus: '', hbAct: false, alertaVista: 'todas' };
 let D = null, FOTOS = {}, CH = [], MAP = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -239,6 +241,7 @@ const ETAPA = { FUNCIONA: ['Compraron en ≤30 días', COL.alta, 'p-a'], TARDIA:
 const SEM = { ROJO: ['⛔ +45 hábiles', 'p-c'], AMARILLO: ['⚠ 31–45 hábiles', 'p-w'], VERDE: ['✓ en plazo', 'p-g'], 'EN SLA': ['✓ ≤45 hábiles', 'p-g'], 'FUERA SLA': ['⛔ fuera de SLA', 'p-c'], DESCARTADA: ['✕ no corresponde', 'p-n'] };
 const params = new URLSearchParams(location.search);
 const EMBED = params.get('embed') === '1';
+const QMAP = {}; let SCOPE = '';
 if (EMBED) document.documentElement.classList.add('embed');
 if (params.get('spv') && !/^(TODOS|GERENCIA|SALINAS)$/i.test(params.get('spv'))) S.spv = params.get('spv').toUpperCase();
 
@@ -647,14 +650,19 @@ function estEf(s) {
   return 'OTRO';
 }
 function solPer(s) { if (S.mes !== '') return mesDe(s.f) === +S.mes; if (S.q === 'ANIO') return true; return 'Q' + (Math.floor(mesDe(s.f) / 3) + 1) === S.q; }
+function vistaSol() {
+  return `<div class="chips vista">${[['seg', '📊 Seguimiento de solicitudes'], ['hoja', '📄 Hoja de respuestas completa']].map(([k, l]) => `<span class="chip ${S.solVista === k ? 'on' : ''}" onclick="S.solVista='${k}';render()">${l}</span>`).join('')}</div>`;
+}
 function vSolicitudes() {
+  if (S.solVista === 'hoja') return vistaSol() + vRtaHoja();
+  if (!D.solicitudes) return `<div class="card empty" style="text-align:left;line-height:1.6"><b>Todavía no hay solicitudes publicadas.</b><br>Los datos que ve el tablero se generaron con el script anterior (${esc(D.generado ? new Date(D.generado).toLocaleString('es-AR') : '')}). Pegá el <b>ABM_Galaxia.gs</b> nuevo en Apps Script, guardá y corré <b>📋 ABM Galaxia → 🔄 Actualizar todo</b>. Ahí se crea la hoja ABM SOLICITUDES y esta pestaña se completa con las respuestas de RTA FORMULARIO.</div>`;
   const base = (D.solicitudes || []).filter(solPer).filter(s => (!S.spv || s.spv === S.spv) && (!S.prom || s.prom === S.prom));
   const L = base.filter(s => (!S.solTipo || s.t === S.solTipo) && (!S.solEst || estEf(s) === S.solEst) &&
     (!S.txt || [s.c, s.ident, s.rs, s.prom, s.loc, s.quien].join(' ').toUpperCase().includes(S.txt.toUpperCase())));
   const cnt = f => base.filter(f).length;
   const al = base.filter(s => s.t === 'ALTA'), bj = base.filter(s => s.t === 'BAJA');
   const pAl = pct(al.filter(s => estEf(s) === 'REALIZADA').length, al.length), pBj = pct(bj.filter(s => estEf(s) === 'REALIZADA').length, bj.filter(s => estEf(s) !== 'NO CORRESPONDE').length);
-  let h = `<div class="grid g4">
+  let h = vistaSol() + `<div class="grid g4">
     ${tile('Solicitudes', nf(base.length), `${al.length} altas · ${bj.length} bajas · ${qTxt()}`, '', "S.solTipo='';S.solEst='';render()")}
     ${tile('Altas realizadas', pctTxt(pAl), `${al.filter(s => estEf(s) === 'PENDIENTE').length} pendientes`, ring(pAl, COL.alta), "S.solTipo='ALTA';S.solEst='';render()")}
     ${tile('Bajas realizadas', pctTxt(pBj), `${bj.filter(s => estEf(s) === 'PENDIENTE').length} pendientes`, ring(pBj, COL.baja), "S.solTipo='BAJA';S.solEst='';render()")}
@@ -672,7 +680,7 @@ function vSolicitudes() {
         `<span class="pill ${/^REALIZADA/.test(s.est) ? 'p-g' : s.est === 'PENDIENTE' ? 'p-w' : s.est === 'NO CORRESPONDE' ? 'p-n' : 'p-c'}">${esc(s.est.toLowerCase())}</span>`, fd(s.ff),
         { v: s.dias != null ? `<b style="color:${s.sla === false || (!s.ff && ((s.t === 'ALTA' && s.dias > D.cfg.slaAlta) || (s.t === 'BAJA' && s.dias > D.cfg.slaBaja))) ? COL.crit : 'inherit'}">${s.dias}</b> <span class="muted small">${s.t === 'ALTA' ? 'd' : 'háb.'}</span>` : '' },
         `<span class="pill ${SOL_EST[e][1]}">${SOL_EST[e][0]}</span>${s.g && s.g.com ? `<div class="small muted" style="white-space:normal;max-width:220px">${esc(s.g.com)}${s.g.usr ? ' · ' + esc(s.g.usr) : ''}</div>` : ''}`,
-        (puedeEditar(s.spv) ? `<button class="edit" onclick="editarSol('${s.id}')">✏️ Gestionar</button> ` : '') + (D.cfg.gidRta ? `<a class="small" href="${sheetLink(D.cfg.gidRta, s.fila)}" target="_blank">fila ${s.fila}</a>` : '')];
+        (puedeEditar(s.spv) ? `<button class="edit" onclick="editarSol('${s.id}')">✏️ Gestionar</button> ` : '') + `<button class="edit" style="background:#FBF6EA;color:var(--ink2)" onclick="fichaRta(${s.fila})" title="Ver todas las respuestas del formulario">🔍 Ficha</button> ` + (D.cfg.gidRta ? `<a class="small" href="${sheetLink(D.cfg.gidRta, s.fila)}" target="_blank">fila ${s.fila}</a>` : '')];
     }));
   return h;
 }
@@ -706,6 +714,84 @@ function csvSol() {
   const L = (D.solicitudes || []).filter(solPer).filter(s => (!S.spv || s.spv === S.spv) && (!S.solTipo || s.t === S.solTipo) && (!S.solEst || estEf(s) === S.solEst));
   csv(`solicitudes_${D.hoy}.csv`, ['Fecha', 'Tipo', 'Promotor', 'Supervisor', 'Codigo', 'Cargado', 'Razon social', 'Localidad', 'Latitud', 'Longitud', 'Motivo', 'Estado automatico', 'Realizada', 'Dias', 'Gestion', 'Comentario', 'Usuario'],
     L.map(s => [s.f, s.t, s.prom, s.spv, s.c, s.ident, s.rs, s.loc, s.lat, s.lng, s.mot, s.est, s.ff, s.dias, SOL_EST[estEf(s)][0], s.g ? s.g.com : '', s.g ? s.g.usr : '']));
+}
+
+/* ---------- HOJA DE RESPUESTAS COMPLETA (rta.json) ---------- */
+let RTA = null, RTA_ERR = '', RTA_CARGANDO = false;
+const RTA_TIPOS = { ALTA: ['Altas', 'p-a'], BAJA: ['Bajas', 'p-b'], MODIFICACION: ['Modificaciones', 'p-v'], 'CAMBIO DE SUB CANAL': ['Cambio de subcanal', 'p-n'] };
+async function cargarRta() {
+  if (RTA || RTA_CARGANDO) return; RTA_CARGANDO = true;
+  try {
+    const r = await fetch('rta.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
+    RTA = await r.json();
+    RTA.rows.forEach(x => { const q = String(x.v[2] || '').toUpperCase().trim(); const m = QMAP[q] || {}; x.quien = q; x.spv = m.spv || ''; x.prom = m.prom || q;
+      x.sol = (D.solicitudes || []).find(s => s.fila === x.fila) || null; x.txt = (Object.values(x.v).join(' ') + ' ' + (x.arbol || '')).toUpperCase(); });
+    if (SCOPE) RTA.rows = RTA.rows.filter(x => x.spv === SCOPE);
+  } catch (e) { RTA_ERR = e.message; }
+  RTA_CARGANDO = false; render();
+}
+function rtaCols(rows) {   // columnas con algún dato para ese tipo, en el orden de la hoja
+  const set = new Set(); rows.forEach(r => Object.keys(r.v).forEach(k => set.add(+k)));
+  return [...set].sort((a, b) => a - b);
+}
+function rtaVal(v, k, r) {
+  if (v == null || v === '') return '';
+  if (/^https?:\/\//.test(v)) return `<a href="${esc(v)}" target="_blank" rel="noopener">${/drive\.google/.test(v) ? '📷 ver foto' : /maps/.test(v) ? '📍 mapa' : 'abrir'} ↗</a>`;
+  if (/^COORDENADAS/.test(abmN(RTA.hdr[k])) && r && r.sol && r.sol.lat) return `${esc(v)} <a class="geo" href="https://www.google.com/maps?q=${r.sol.lat},${r.sol.lng}" target="_blank">📍</a>`;
+  return esc(v);
+}
+function abmN(x) { return String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim(); }
+function rtaFiltrados() {
+  return RTA.rows.filter(r => solPer(r) && (!S.spv || r.spv === S.spv) && (!S.prom || r.prom === S.prom) && (!S.txt || r.txt.includes(S.txt.toUpperCase())));
+}
+function vRtaHoja() {
+  if (!RTA) { if (!RTA_ERR) cargarRta();
+    return RTA_ERR ? `<div class="card empty" style="text-align:left;line-height:1.6"><b>Todavía no está publicada la hoja de respuestas</b> (rta.json: ${esc(RTA_ERR)}).<br>Corré <b>📋 ABM Galaxia → 🔄 Actualizar todo</b> con el script nuevo y recargá.</div>` : '<div class="loading">Cargando respuestas del formulario…</div>'; }
+  const base = rtaFiltrados(), orden = Object.keys(RTA_TIPOS), tipos = [...new Set(RTA.rows.map(r => r.t))].sort((a, b) => ((orden.indexOf(a) + 1) || 99) - ((orden.indexOf(b) + 1) || 99));
+  if (!S.rtaTipo || !tipos.includes(S.rtaTipo)) S.rtaTipo = tipos.includes('ALTA') ? 'ALTA' : tipos[0];
+  const L = base.filter(r => r.t === S.rtaTipo), cols = rtaCols(RTA.rows.filter(r => r.t === S.rtaTipo)).filter(k => k !== 0);
+  const conArbol = L.some(r => r.arbol);
+  let h = `<div class="chips" style="margin-top:12px">${tipos.map(t => `<span class="chip ${S.rtaTipo === t ? 'on' : ''}" onclick="S.rtaTipo='${esc(t)}';render()">${(RTA_TIPOS[t] || [t])[0]}<span class="c">${base.filter(r => r.t === t).length}</span></span>`).join('')}</div>
+  <div class="filters">${selSpvProm(RTA.rows.map(r => ({ spv: r.spv, prom: r.prom })))}<button class="btn" onclick="csvRta()">⬇ CSV</button>
+    ${D.cfg.gidRta ? `<a class="btn" href="${sheetLink(D.cfg.gidRta)}" target="_blank">📄 Abrir RTA FORMULARIO</a>` : ''}${D.cfg.urlForm ? `<a class="btn" href="${esc(D.cfg.urlForm)}" target="_blank">📝 Formulario ↗</a>` : ''}</div>
+  <div class="note" style="margin-bottom:10px">La hoja <b>RTA FORMULARIO</b> tal cual está en el Sheet (todas las columnas con datos de ${(RTA_TIPOS[S.rtaTipo] || [S.rtaTipo])[0].toLowerCase()}, ${qTxt()}). Tocá <b>🔍 Ficha</b> para ver una respuesta completa y copiar los datos para cargar el alta en el sistema.${S.rtaTipo === 'ALTA' ? ' Las preguntas del árbol de subcanal se muestran juntas en una sola columna.' : ''}</div>`;
+  const hdr = ['', 'Fecha', 'Estado'].concat(cols.map(k => esc(RTA.hdr[k]))).concat(conArbol ? ['Subcanal (árbol)', 'Respuestas del árbol'] : []);
+  h += tabla(hdr, L.slice().reverse().map(r => [`<button class="edit" onclick="fichaRta(${r.fila})">🔍 Ficha</button>`, esc(r.v[0] || r.f), estRta(r)]
+    .concat(cols.map(k => { const v = r.v[k] || ''; return v.length > 40 && !/^https?:/.test(v) ? { v: `<span title="${esc(v)}">${esc(v.slice(0, 40))}…</span>`, cls: 'txt' } : rtaVal(v, k, r); }))
+    .concat(conArbol ? [esc(r.sub || ''), { v: `<span class="small" title="${esc(r.arbol || '')}">${esc((r.arbol || '').slice(0, 70))}${(r.arbol || '').length > 70 ? '…' : ''}</span>`, cls: 'txt' }] : [])), 'rta');
+  return h;
+}
+function estRta(r) {
+  const s = r.sol; if (!s) return '<span class="muted small">—</span>';
+  const e = estEf(s); return `<span class="pill ${SOL_EST[e][1]}">${SOL_EST[e][0]}</span>`;
+}
+async function fichaRta(fila) {
+  if (!RTA) { $('#modal').innerHTML = `<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="box"><div class="loading" style="padding:30px 0">Cargando respuestas…</div></div></div>`; await cargarRta(); if (!RTA) { cerrarModal(); toast('La hoja de respuestas todavía no está publicada'); return; } }
+  const r = RTA.rows.find(x => x.fila === fila); if (!r) { cerrarModal(); toast('No encontré la fila ' + fila); return; }
+  const campos = Object.keys(r.v).map(Number).sort((a, b) => a - b).map(k => [RTA.hdr[k], r.v[k], k]);
+  if (r.sub) campos.push(['Subcanal (según árbol)', r.sub, -1]);
+  if (r.arbol) campos.push(['Respuestas del árbol', r.arbol, -1]);
+  const s = r.sol;
+  $('#modal').innerHTML = `<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="box" style="width:min(680px,100%)">
+    <h3><span class="pill ${(RTA_TIPOS[r.t] || ['', 'p-n'])[1]}">${(RTA_TIPOS[r.t] || [r.t])[0]}</span> ${esc(r.v[5] || r.v[3] || r.v[46] || r.v[27] || '')}</h3>
+    <div class="small muted">Fila ${r.fila} de RTA FORMULARIO · ${esc(r.v[0] || r.f)} · ${esc(r.prom.replace(/^\d+--/, ''))}${r.spv ? ' · ' + esc(r.spv) : ''}${s ? ` · estado: <b>${SOL_EST[estEf(s)][0].toLowerCase()}</b>${s.c ? ' · código ' + esc(s.c) : ''}` : ''}</div>
+    <table style="margin-top:12px;font-size:12.5px"><tbody>${campos.map(([h, v, k]) => `<tr><td style="white-space:normal;color:var(--ink2);font-weight:600;width:38%;vertical-align:top">${esc(h)}</td><td style="white-space:normal">${k >= 0 ? rtaVal(v, k, r) : esc(v)}</td></tr>`).join('')}</tbody></table>
+    <div class="acts2" style="flex-wrap:wrap">
+      ${D.cfg.gidRta ? `<a class="btn" href="${sheetLink(D.cfg.gidRta, r.fila)}" target="_blank">📄 Ver fila en el Sheet</a>` : ''}
+      <button class="btn" onclick="copiarRta(${r.fila})">📋 Copiar datos</button>
+      ${s && puedeEditar(s.spv) ? `<button class="btn dark" onclick="editarSol('${s.id}')">✏️ Gestionar</button>` : ''}
+      <button class="btn" onclick="cerrarModal()">Cerrar</button></div></div></div>`;
+}
+function copiarRta(fila) {
+  const r = RTA.rows.find(x => x.fila === fila); if (!r) return;
+  const t = Object.keys(r.v).map(Number).sort((a, b) => a - b).map(k => `${RTA.hdr[k]}: ${r.v[k]}`).concat(r.sub ? ['Subcanal (según árbol): ' + r.sub] : []).join('\n');
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('📋 Datos copiados'), () => { prompt('Copiá los datos:', t); });
+}
+function csvRta() {
+  if (!RTA) return; const L = rtaFiltrados().filter(r => r.t === S.rtaTipo), cols = rtaCols(RTA.rows.filter(r => r.t === S.rtaTipo));
+  const ex = L.some(r => r.arbol);
+  csv(`rta_${abmN(S.rtaTipo).toLowerCase().replace(/\s+/g, '_')}_${D.hoy}.csv`, ['Fila', 'Estado'].concat(cols.map(k => RTA.hdr[k])).concat(ex ? ['Subcanal (arbol)', 'Respuestas del arbol'] : []),
+    L.map(r => [r.fila, r.sol ? SOL_EST[estEf(r.sol)][0] : ''].concat(cols.map(k => r.v[k] || '')).concat(ex ? [r.sub || '', r.arbol || ''] : [])));
 }
 
 /* ---------- CONSOLIDADO POR MES ---------- */
@@ -919,6 +1005,9 @@ function render() {
 async function init() {
   try { const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); D = await r.json(); }
   catch (e) { $('#app').innerHTML = `<div class="card empty">No pude leer <b>data.json</b> (${esc(e.message)}). Corré “Actualizar todo” desde el menú 📋 ABM Galaxia del Sheet.</div>`; return; }
+  (D.solicitudes || []).forEach(x => { const q = String(x.quien || '').toUpperCase().trim(); if (q && x.spv && !QMAP[q]) QMAP[q] = { spv: x.spv, prom: x.prom }; });
+  D.altas.concat(D.bajas).forEach(x => { const q = String(x.prom || '').replace(/^\d+--/, '').toUpperCase(); const sp = spvOf(x); if (q && sp && !QMAP[q]) QMAP[q] = { spv: sp, prom: x.prom }; });
+  if (EMBED && S.spv) SCOPE = S.spv;
   if (EMBED && S.spv) {   // dentro de Ruta CCC: cada supervisor ve solo lo suyo
     const esSpv = x => spvOf(x) === S.spv;
     const promsSpv = new Set(D.altas.concat(D.bajas).filter(esSpv).map(x => (x.prom || '').replace(/^\d+--/, '')));
