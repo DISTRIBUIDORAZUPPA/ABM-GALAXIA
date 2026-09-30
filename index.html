@@ -145,6 +145,7 @@ details.grp .body{padding:0 14px 12px}
 .chartbox{position:relative;height:250px}
 .chartbox.sm{height:190px}
 .legend{display:flex;gap:12px;font-size:11.5px;color:var(--ink2);flex-wrap:wrap;margin-top:6px}
+.osm{filter:saturate(.55) brightness(1.04)}
 .leaflet-popup-content{font-family:var(--sans);font-size:12px}
 @media (max-width:1250px){.g6{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:980px){.shell{grid-template-columns:1fr} aside.side{position:static;height:auto} .nav{display:flex;overflow-x:auto;gap:4px} .nav button{width:auto;white-space:nowrap} .g4,.g3,.g2,.g21,.g12,.board{grid-template-columns:1fr} .side .bottom{border:0;padding-top:4px}}
@@ -343,7 +344,7 @@ function dibujarMapa(al, bj) {
   const el = document.getElementById('map'); if (!el) return;
   if (!window.L) { el.innerHTML = '<div class="empty">No se pudo cargar el mapa (sin conexión a internet).</div>'; return; }
   MAP = L.map(el, { scrollWheelZoom: false }).setView([-32.95, -68.72], 11);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 18, attribution: '© OpenStreetMap · © CARTO' }).addTo(MAP);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'osm', attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>' }).addTo(MAP);
   const pts = [];
   if (S.mapVista === 'pdv') {
     const add = (x, t) => { if (!x.lat) return; pts.push([x.lat, x.lng]);
