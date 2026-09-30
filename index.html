@@ -511,7 +511,7 @@ function vHoja() {
   h += `<div class="tbl-wrap" style="max-height:640px"><table class="hb"><thead><tr>${cols.map((c, i) => { const j = i - 2; return `<th class="${j >= a0 && j <= a1 ? 'act' : j === cCod ? 'sticky' : ''}">${esc(c)}</th>`; }).join('')}</tr></thead><tbody>` +
     R.map(r => { const b = porCod[code(r)];
       const ed = puedeEditar(r.v[cSpv]), cd = code(r);
-      return '<tr>' + `<td>${ed ? `<button class="edit" onclick="editarBaja('${cd}')">✏️ Editar</button>` : ''}</td><td>${b && SEM[b.sem] ? `<span class="pill ${SEM[b.sem][1]}">${SEM[b.sem][0]}</span>` : ''}</td>` + r.v.map((v, j) => {
+      return '<tr>' + `<td>${ed ? `<button class="edit" onclick="editarBaja('${cd}')">✏️ Editar</button>` : ''}</td><td>${b && SEM[b.sem] ? `<span class="pill ${SEM[b.sem][1]}">${SEM[b.sem][0]}</span>` : ''}${b && b.reactivado ? ' <span class="pill p-v" title="Se dio de baja y hoy figura activo en BASE CLIENTES">↺ reactivado</span>' : ''}</td>` + r.v.map((v, j) => {
         if (j === I.ok) { const on = /^(TRUE|SI|SÍ|OK)$/i.test(String(v)); return `<td style="text-align:center">${ed ? `<input type="checkbox" ${on ? 'checked' : ''} title="OK supervisor" onchange="guardarBaja('${cd}', this.checked)" style="width:17px;height:17px;cursor:pointer">` : (on ? '✅' : '☐')}</td>`; }
         if (j >= a0 && j <= a1) return `<td class="act">${num(v) > 0 ? `<b>${esc(v)}</b>` : '<span class="muted">·</span>'}</td>`;
         if (j === cSt) { const s = String(v).toUpperCase(); return `<td><span class="pill ${s === 'COMPLETADO' ? 'p-g' : s === 'EN PROCESO' ? 'p-w' : 'p-n'}">${esc(v)}</span></td>`; }
