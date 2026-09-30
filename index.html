@@ -160,7 +160,8 @@ details.grp .body{padding:0 14px 12px}
 .user button{all:unset;cursor:pointer;color:var(--accent);font-size:11.5px;margin-left:6px}
 .login{all:unset;cursor:pointer;display:block;text-align:center;background:var(--accent);color:#06222A;font-weight:600;border-radius:10px;padding:8px;font-size:12.5px;margin-bottom:10px}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--nav);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;z-index:1100;box-shadow:var(--shadow)}
-.embed .shell{grid-template-columns:1fr}
+.embed .shell{grid-template-columns:1fr;min-height:0}
+.embed body,.embed html{min-height:0}
 .embed aside.side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 14px;border-radius:14px;margin:0 0 12px}
 .embed .logo{display:none} .embed .nav{display:flex;flex-wrap:wrap;gap:4px} .embed .nav button{width:auto;padding:7px 10px;font-size:12px}
 .embed .side .bottom{margin:0 0 0 auto;border:0;padding:0;display:flex;gap:10px;align-items:center} .embed .side .bottom .small,.embed .side .upd{display:none}
@@ -742,6 +743,13 @@ function render() {
 async function init() {
   try { const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); D = await r.json(); }
   catch (e) { $('#app').innerHTML = `<div class="card empty">No pude leer <b>data.json</b> (${esc(e.message)}). Corré “Actualizar todo” desde el menú 📋 ABM Galaxia del Sheet.</div>`; return; }
+  if (EMBED && S.spv) {   // dentro de Ruta CCC: cada supervisor ve solo lo suyo
+    const esSpv = x => spvOf(x) === S.spv;
+    const promsSpv = new Set(D.altas.concat(D.bajas).filter(esSpv).map(x => (x.prom || '').replace(/^\d+--/, '')));
+    D.altas = D.altas.filter(esSpv); D.bajas = D.bajas.filter(esSpv);
+    D.altasPend = D.altasPend.filter(p => promsSpv.has(String(p.quien || '').toUpperCase()));
+    if (D.hojaBaja) { const cS = D.hojaBaja.hdr.findIndex(x => x.toUpperCase().indexOf('SUPERVISOR') === 0); if (cS >= 0) D.hojaBaja.rows = D.hojaBaja.rows.filter(r => String(r.v[cS]).toUpperCase() === S.spv); }
+  }
   for (const u of ['fotos.json', 'https://distribuidorazuppa.github.io/GESTION-CNC/fotos.json']) { try { const r = await fetch(u); if (r.ok) { FOTOS = await r.json(); break; } } catch (e) { } }
   const g = new Date(D.generado);
   $('#sub').textContent = `Actualizado ${g.toLocaleDateString('es-AR')} ${g.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} · SLA altas ${D.cfg.slaAlta} días corridos · bajas ${D.cfg.slaBaja} días hábiles`;
@@ -753,8 +761,11 @@ async function init() {
   if (EMBED) try { parent.postMessage({ abmListo: true }, '*'); } catch (e) { }
 }
 if (EMBED) {
-  const alto = () => { try { parent.postMessage({ abmAlto: document.documentElement.scrollHeight }, '*'); } catch (e) { } };
-  new ResizeObserver(alto).observe(document.body);
+  let ultAlto = 0;
+  const alto = () => { const sh = document.querySelector('.shell'), m = document.getElementById('modal');
+    const hgt = Math.ceil(Math.max(sh ? sh.getBoundingClientRect().height : 0, m && m.firstChild ? 700 : 0));
+    if (Math.abs(hgt - ultAlto) < 8) return; ultAlto = hgt; try { parent.postMessage({ abmAlto: hgt }, '*'); } catch (e) { } };
+  new ResizeObserver(alto).observe(document.querySelector('.shell'));
   window.addEventListener('message', async e => {
     if (!/distribuidorazuppa\.github\.io|ccckpizuppa\.netlify\.app/.test(e.origin)) return;
     const a = e.data && e.data.abmAuth; if (!a || !a.clave || !D || !D.cfg.webApp || (S.user && S.user.clave === a.clave)) return;
