@@ -146,6 +146,26 @@ details.grp .body{padding:0 14px 12px}
 .chartbox.sm{height:190px}
 .legend{display:flex;gap:12px;font-size:11.5px;color:var(--ink2);flex-wrap:wrap;margin-top:6px}
 .osm{filter:saturate(.55) brightness(1.04)}
+.modal{position:fixed;inset:0;background:rgba(19,41,75,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal .box{background:#fff;border-radius:16px;padding:20px;width:min(560px,100%);max-height:92vh;overflow:auto;box-shadow:0 20px 60px -20px rgba(0,0,0,.4)}
+.modal h3{margin:0 0 4px;font-size:16px} .modal label{display:block;font-size:11.5px;color:var(--ink2);font-weight:600;margin:12px 0 4px}
+.modal input[type=text],.modal input[type=date],.modal input[type=url],.modal input[type=password],.modal textarea{width:100%;font-family:var(--sans);font-size:13px;padding:8px 10px;border:1px solid var(--line2);border-radius:10px}
+.modal textarea{min-height:80px;resize:vertical}
+.modal .acts2{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.okchk{display:flex;gap:8px;align-items:center;font-size:13px;margin-top:12px;cursor:pointer}
+.okchk input{width:18px;height:18px}
+.edit{all:unset;cursor:pointer;font-size:12px;padding:3px 8px;border-radius:8px;background:var(--alta-bg);color:#077580;font-weight:600;white-space:nowrap}
+.edit:hover{background:var(--accent);color:#fff}
+.user{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px;font-size:12px;color:#fff;margin-bottom:10px}
+.user button{all:unset;cursor:pointer;color:var(--accent);font-size:11.5px;margin-left:6px}
+.login{all:unset;cursor:pointer;display:block;text-align:center;background:var(--accent);color:#06222A;font-weight:600;border-radius:10px;padding:8px;font-size:12.5px;margin-bottom:10px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--nav);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;z-index:1100;box-shadow:var(--shadow)}
+.embed .shell{grid-template-columns:1fr}
+.embed aside.side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 14px;border-radius:14px;margin:0 0 12px}
+.embed .logo{display:none} .embed .nav{display:flex;flex-wrap:wrap;gap:4px} .embed .nav button{width:auto;padding:7px 10px;font-size:12px}
+.embed .side .bottom{margin:0 0 0 auto;border:0;padding:0;display:flex;gap:10px;align-items:center} .embed .side .bottom .small,.embed .side .upd{display:none}
+.embed .qsel{margin:0;width:230px} .embed .user,.embed .login{margin:0}
+.embed header.top h1{font-size:24px} .embed header.top .kick{display:none} .embed main{padding:12px 4px 30px}
 .leaflet-popup-content{font-family:var(--sans);font-size:12px}
 @media (max-width:1250px){.g6{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:980px){.shell{grid-template-columns:1fr} aside.side{position:static;height:auto} .nav{display:flex;overflow-x:auto;gap:4px} .nav button{width:auto;white-space:nowrap} .g4,.g3,.g2,.g21,.g12,.board{grid-template-columns:1fr} .side .bottom{border:0;padding-top:4px}}
@@ -159,6 +179,7 @@ details.grp .body{padding:0 14px 12px}
     <div class="logo"><i>↕</i><div>ABM Galaxia<small>Distribuidora Zuppa</small></div></div>
     <nav class="nav" id="nav"></nav>
     <div class="bottom">
+      <div id="userbox"></div>
       <div class="small">Período</div>
       <div class="qsel" id="qsel"></div>
       <div class="upd" id="upd"></div>
@@ -179,6 +200,7 @@ details.grp .body{padding:0 14px 12px}
     <div id="app"><div class="loading">Cargando datos…</div></div>
   </main>
 </div>
+<div id="modal"></div>
 <script>
 'use strict';
 const S = { tab: 'resumen', q: 'ANIO', spv: '', prom: '', txt: '', altaFiltro: 'todas', ctlSev: '', mapModo: 'ambas', mapVista: 'loc', etapa: 'TODAS', mesSel: '', hbStatus: '', hbAct: false, alertaVista: 'todas' };
@@ -192,15 +214,18 @@ const fd = s => { if (!s) return ''; const p = s.split('-'); return p[2] + '/' +
 const MES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
 const COL = { alta: '#0E9AA7', baja: '#F07B3F', violet: '#6C5CE7', good: '#0ca30c', warn: '#fab219', crit: '#d03b3b', gris: '#A9B4C4' };
 const ETAPA = { FUNCIONA: ['Compraron en ≤30 días', COL.alta, 'p-a'], TARDIA: ['Compraron después', COL.violet, 'p-v'], NUNCA: ['Nunca compraron', COL.baja, 'p-b'], OBSERVACION: ['En observación (<30 días)', COL.gris, 'p-n'] };
-const SEM = { ROJO: ['⛔ +45 hábiles', 'p-c'], AMARILLO: ['⚠ 31–45 hábiles', 'p-w'], VERDE: ['✓ en plazo', 'p-g'], 'EN SLA': ['✓ ≤45 hábiles', 'p-g'], 'FUERA SLA': ['⛔ fuera de SLA', 'p-c'] };
+const SEM = { ROJO: ['⛔ +45 hábiles', 'p-c'], AMARILLO: ['⚠ 31–45 hábiles', 'p-w'], VERDE: ['✓ en plazo', 'p-g'], 'EN SLA': ['✓ ≤45 hábiles', 'p-g'], 'FUERA SLA': ['⛔ fuera de SLA', 'p-c'], DESCARTADA: ['✕ no corresponde', 'p-n'] };
 const params = new URLSearchParams(location.search);
-if (params.get('spv')) S.spv = params.get('spv').toUpperCase();
+const EMBED = params.get('embed') === '1';
+if (EMBED) document.documentElement.classList.add('embed');
+if (params.get('spv') && !/^(TODOS|GERENCIA|SALINAS)$/i.test(params.get('spv'))) S.spv = params.get('spv').toUpperCase();
 
 function sheetLink(gid, fila) { return D.cfg.sheetId ? `https://docs.google.com/spreadsheets/d/${D.cfg.sheetId}/edit#gid=${gid}` + (fila ? `&range=A${fila}` : '') : '#'; }
 function inQ(q) { return S.q === 'ANIO' || q === S.q; }
 function altasAnio() { return D.altas.filter(a => a.ff && a.ff.slice(0, 4) === String(D.cfg.anio)); }
 function altasQ() { return altasAnio().filter(a => inQ(a.q)); }
-function bajasOk() { return D.bajas.filter(b => b.existe && !b.previa); }
+function bajasOk() { return D.bajas.filter(b => b.existe && !b.previa && b.estado !== 'DESCARTADA'); }
+function bajasDesc() { return D.bajas.filter(b => b.estado === 'DESCARTADA'); }
 function bajasQ() { return bajasOk().filter(b => inQ(b.q)); }
 function pendientes() { return bajasOk().filter(b => b.estado !== 'COMPLETADO'); }
 function spvOf(x) { return x.spv || 'SIN SUPERVISOR'; }
@@ -230,8 +255,8 @@ function goTab(t, extra) { if (extra) Object.assign(S, extra); S.tab = t; histor
 function setQ(q) { S.q = q; render(); }
 function renderNav() {
   const badge = {
-    altas: D.altasPend.filter(p => !p.existe && p.dias > D.cfg.slaAlta).length + altasAnio().filter(a => !a.sla && !a.obs).length,
-    alertas: pendientes().filter(b => b.sem === 'ROJO').length,
+    altas: (S.spv ? 0 : D.altasPend.filter(p => !p.existe && p.dias > D.cfg.slaAlta).length) + altasAnio().filter(a => !a.sla && !a.obs && (!S.spv || spvOf(a) === S.spv)).length,
+    alertas: pendientes().filter(b => b.sem === 'ROJO' && (!S.spv || spvOf(b) === S.spv)).length,
     calidad: D.control.filter(c => c.sev === 'alta').length
   };
   $('#nav').innerHTML = TABS.map(([k, ic, l]) => `<button class="${S.tab === k ? 'on' : ''}" onclick="goTab('${k}')"><span class="ic">${ic}</span>${l}${badge[k] ? `<span class="n">${badge[k]}</span>` : ''}</button>`).join('');
@@ -472,7 +497,7 @@ function vHoja() {
   const spvs = [...new Set(HB.rows.map(r => String(r.v[cSpv]).toUpperCase()).filter(Boolean))].sort();
   const proms = [...new Set(HB.rows.filter(r => !S.spv || String(r.v[cSpv]).toUpperCase() === S.spv).map(r => String(r.v[cProm]).toUpperCase()).filter(Boolean))].sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999));
   const tot = H.slice(a0, a1 + 1).map((n, i) => ({ n, v: R.reduce((s, r) => s + num(r.v[a0 + i]), 0) }));
-  let h = `<div class="note" style="margin-bottom:10px">Es la hoja <b>BAJA</b> del Sheet tal cual, con todas sus columnas y los activos fijos. Para cargar plan de acción, OK supervisor, comentarios o evidencia, usá el link "fila" (abre el Sheet en esa fila).</div>`;
+  let h = `<div class="note" style="margin-bottom:10px">Es la hoja <b>BAJA</b> del Sheet tal cual, con todas sus columnas y los activos fijos. ${D.cfg.webApp ? (S.user ? 'Tocá <b>✏️ Editar</b> para cargar plan de acción, responsable, deadline, comentarios y evidencia, o marcá el <b>OK supervisor</b> directo en la tabla: se guarda en el Sheet.' : 'Supervisores: tocá <b>🔐 Ingresar para editar</b> (abajo a la izquierda) para cargar el OK y los planes de acción desde acá.') : 'Para cargar plan de acción u OK supervisor, usá el link "fila" (abre el Sheet en esa fila).'}</div>`;
   h += `<div class="filters"><select onchange="S.hbStatus=this.value;render()"><option value="">Todos los status</option>${sts.map(s => `<option ${S.hbStatus === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
     <select onchange="S.spv=this.value;S.prom='';render()"><option value="">Todos los supervisores</option>${spvs.map(s => `<option ${S.spv === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
     <select onchange="S.prom=this.value;render()"><option value="">Todos los promotores</option>${proms.map(s => `<option ${S.prom === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
@@ -480,10 +505,13 @@ function vHoja() {
     <span class="chip ${S.hbAct ? 'on' : ''}" onclick="S.hbAct=!S.hbAct;render()">Solo con activos fijos</span>
     <button class="btn" onclick="csvHoja()">⬇ CSV</button></div>`;
   h += `<div class="acts" style="margin-bottom:12px"><div><b>${R.length}</b><span>filas</span></div>${tot.filter(t => t.v > 0).map(t => `<div><b>${nf(t.v)}</b><span>${esc(t.n)}</span></div>`).join('')}</div>`;
-  const cols = ['Semáforo'].concat(H).concat(['Evidencia', '']);
-  h += `<div class="tbl-wrap" style="max-height:640px"><table class="hb"><thead><tr>${cols.map((c, i) => { const j = i - 1; return `<th class="${j >= a0 && j <= a1 ? 'act' : j === cCod ? 'sticky' : ''}">${esc(c)}</th>`; }).join('')}</tr></thead><tbody>` +
+  const I = hbIdx();
+  const cols = ['', 'Semáforo'].concat(H).concat(['Evidencia', '']);
+  h += `<div class="tbl-wrap" style="max-height:640px"><table class="hb"><thead><tr>${cols.map((c, i) => { const j = i - 2; return `<th class="${j >= a0 && j <= a1 ? 'act' : j === cCod ? 'sticky' : ''}">${esc(c)}</th>`; }).join('')}</tr></thead><tbody>` +
     R.map(r => { const b = porCod[code(r)];
-      return '<tr>' + `<td>${b && SEM[b.sem] ? `<span class="pill ${SEM[b.sem][1]}">${SEM[b.sem][0]}</span>` : ''}</td>` + r.v.map((v, j) => {
+      const ed = puedeEditar(r.v[cSpv]), cd = code(r);
+      return '<tr>' + `<td>${ed ? `<button class="edit" onclick="editarBaja('${cd}')">✏️ Editar</button>` : ''}</td><td>${b && SEM[b.sem] ? `<span class="pill ${SEM[b.sem][1]}">${SEM[b.sem][0]}</span>` : ''}</td>` + r.v.map((v, j) => {
+        if (j === I.ok) { const on = /^(TRUE|SI|SÍ|OK)$/i.test(String(v)); return `<td style="text-align:center">${ed ? `<input type="checkbox" ${on ? 'checked' : ''} title="OK supervisor" onchange="guardarBaja('${cd}', this.checked)" style="width:17px;height:17px;cursor:pointer">` : (on ? '✅' : '☐')}</td>`; }
         if (j >= a0 && j <= a1) return `<td class="act">${num(v) > 0 ? `<b>${esc(v)}</b>` : '<span class="muted">·</span>'}</td>`;
         if (j === cSt) { const s = String(v).toUpperCase(); return `<td><span class="pill ${s === 'COMPLETADO' ? 'p-g' : s === 'EN PROCESO' ? 'p-w' : 'p-n'}">${esc(v)}</span></td>`; }
         if (j === cCod) return `<td class="sticky code">${esc(v)}</td>`;
@@ -509,8 +537,14 @@ function vAlertas() {
     ${tile('No cumplieron 45 días', nf(fuera.length), `${compF.length} completadas tarde · ${fuera.length - compF.length} pendientes`, '<span style="font-size:26px">🗂</span>', "S.alertaVista='fuera';render()")}
   </div>
   <div class="filters">${selSpvProm(bajasOk())}
-    ${[['todas', 'Semáforo'], ['fuera', 'No cumplieron 45 días'], ['prox', 'Por vencer'], ['sigue', 'Siguen comprando']].map(([k, l]) => `<span class="chip ${S.alertaVista === k ? 'on' : ''}" onclick="S.alertaVista='${k}';render()">${l}</span>`).join('')}
+    ${[['todas', 'Semáforo'], ['fuera', 'No cumplieron 45 días'], ['prox', 'Por vencer'], ['sigue', 'Siguen comprando'], ['desc', 'No corresponden · ' + bajasDesc().length]].map(([k, l]) => `<span class="chip ${S.alertaVista === k ? 'on' : ''}" onclick="S.alertaVista='${k}';render()">${l}</span>`).join('')}
     <button class="btn" onclick="csvBajas()">⬇ CSV</button></div>`;
+  if (S.alertaVista === 'desc') {
+    const L = bajasDesc().filter(filtroComun);
+    return h + `<div class="sec">Pedidos de baja marcados como "no corresponde" <small>${L.length} · no cuentan como pendientes ni para el SLA de 45 días</small></div>` +
+      tabla(['Código', 'Razón social', 'Supervisor', 'Promotor', 'Pedido', 'Motivo / comentario', 'Estado en base', ''], L.map(b => [`<span class="code">${esc(b.c)}</span>`, { v: esc(b.rs), cls: 'w' }, who(b.spv), who(b.prom), fd(b.fi), { v: esc(b.com || ''), cls: 'w' }, b.activo ? 'ACTIVO' : 'ANULADO',
+        (puedeEditar(b.spv) ? `<button class="edit" onclick="editarBaja('${esc(b.c)}')">✏️ Editar</button> ` : '') + (b.fila ? `<a href="${sheetLink(D.cfg.gidBaja, b.fila)}" target="_blank">fila ${b.fila}</a>` : '')]));
+  }
   if (S.alertaVista === 'fuera') {
     return h + `<div class="sec">Bajas que no cumplieron los 45 días hábiles <small>${fuera.length} · pendientes y completadas</small></div>` +
       tabla(['Estado', 'Código', 'Razón social', 'Supervisor', 'Promotor', 'Motivo', 'Pedido', 'Anulación', 'Hábiles', 'Plan de acción', 'Responsable', 'Deadline', 'Evidencia', ''],
@@ -536,7 +570,7 @@ function cardBaja(b) {
     <div class="prog"><i style="width:${w}%;background:${col}"></i><span style="position:absolute;left:75%;top:0;bottom:0;border-left:2px dashed #16213A;opacity:.35"></span></div>
     <div class="meta">${esc(b.mot)}${b.loc ? ' · ' + esc(b.loc) : ''}</div>
     <div class="plan ${b.plan ? '' : 'no'}">${b.plan ? '📝 ' + esc(b.plan) + (b.resp ? ` <span class="muted">· ${esc(b.resp)}${b.dl ? ' · ' + fd(b.dl) : ''}</span>` : '') : '⚠ Sin plan de acción'}</div>
-    <div class="tags">${tags.join('')}${b.fila ? `<a class="pill p-n" href="${sheetLink(D.cfg.gidBaja, b.fila)}" target="_blank">fila ${b.fila} ↗</a>` : ''}</div></div>`;
+    <div class="tags">${puedeEditar(b.spv) ? `<button class="edit" onclick="editarBaja('${esc(b.c)}')">✏️ ${b.plan ? 'Editar plan' : 'Cargar plan'}</button>` : ''}${tags.join('')}${b.fila ? `<a class="pill p-n" href="${sheetLink(D.cfg.gidBaja, b.fila)}" target="_blank">fila ${b.fila} ↗</a>` : ''}</div></div>`;
 }
 
 /* ---------- EQUIPO ---------- */
@@ -615,8 +649,90 @@ function csvBajas(todo) {
 }
 function csvHoja() { const HB = D.hojaBaja; if (!HB) return; csv(`hoja_baja_${D.hoy}.csv`, HB.hdr.concat(['Evidencia']), HB.rows.map(r => r.v.concat([r.e]))); }
 
+
+/* ---------- edición (Web App) ---------- */
+function leerUser() { try { return JSON.parse(sessionStorage.getItem('abmUser') || 'null'); } catch (e) { return null; } }
+function guardarUser(u) { try { if (u) sessionStorage.setItem('abmUser', JSON.stringify(u)); else sessionStorage.removeItem('abmUser'); } catch (e) { } }
+S.user = leerUser();
+function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3500); }
+function puedeEditar(spv) { return !!(S.user && D.cfg.webApp && (S.user.spv === '*' || String(spv || '').toUpperCase() === S.user.spv)); }
+function renderUser() {
+  const el = $('#userbox'); if (!el) return;
+  if (!D.cfg.webApp) { el.innerHTML = ''; return; }
+  el.innerHTML = S.user ? `<div class="user">✏️ Editando como <b>${esc(S.user.nombre)}</b><button onclick="salir()">salir</button></div>` : `<button class="login" onclick="abrirLogin()">🔐 Ingresar para editar</button>`;
+}
+function salir() { S.user = null; guardarUser(null); render(); }
+function cerrarModal() { $('#modal').innerHTML = ''; }
+function abrirLogin() {
+  $('#modal').innerHTML = `<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="box"><h3>Ingresar para editar</h3><div class="small muted">Supervisores y jefe de ventas: usá tu clave para cargar OK, planes de acción y evidencias de las bajas.</div>
+    <label>Clave</label><input type="password" id="clave" onkeydown="if(event.key==='Enter')login()"><div id="lerr" class="small" style="color:#d03b3b;margin-top:6px"></div>
+    <div class="acts2"><button class="btn" onclick="cerrarModal()">Cancelar</button><button class="btn dark" onclick="login()">Ingresar</button></div></div></div>`;
+  setTimeout(() => $('#clave') && $('#clave').focus(), 50);
+}
+async function login() {
+  const clave = $('#clave').value.trim(); if (!clave) return;
+  try {
+    const r = await (await fetch(D.cfg.webApp + '?action=login&clave=' + encodeURIComponent(clave))).json();
+    if (!r.ok) { $('#lerr').textContent = r.error || 'Clave incorrecta'; return; }
+    S.user = { clave, nombre: r.nombre, spv: r.spv }; guardarUser(S.user); cerrarModal(); toast('Hola ' + r.nombre + ' 👋'); render();
+  } catch (e) { $('#lerr').textContent = 'No pude conectarme con el Sheet (' + e.message + ')'; }
+}
+function hbIdx() {
+  const HB = D.hojaBaja; if (!HB) return {};
+  const n = HB.hdr.map(x => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim());
+  const f = k => n.findIndex(x => x.indexOf(k) === 0);
+  return { ok: f('OK SUPERVISOR'), com: f('COMENTARIOS'), plan: f('PLAN DE ACCION'), resp: f('RESPONSABLE'), dl: f('DEAD LINE') };
+}
+function aplicarEdicion(code, f) {
+  const b = D.bajas.find(x => x.c === code);
+  if (b) { b.ok = f.ok; b.com = f.com; b.plan = f.plan; b.resp = f.resp; b.dl = f.dl; b.evid = f.evid;
+    if (f.desc && b.estado !== 'COMPLETADO') { b.estado = 'DESCARTADA'; b.sem = 'DESCARTADA'; }
+    else if (!f.desc && b.estado === 'DESCARTADA') { b.estado = 'EN PROCESO'; b.sem = b.dh > D.cfg.slaBaja ? 'ROJO' : b.dh >= D.cfg.amarillo ? 'AMARILLO' : 'VERDE'; } }
+  const HB = D.hojaBaja; if (!HB) return;
+  const I = hbIdx(), r = HB.rows.find(x => String(x.v[HB.cod]).replace(/\D/g, '').replace(/^0+/, '') === code);
+  if (!r) return;
+  if (I.ok >= 0) r.v[I.ok] = f.ok ? 'TRUE' : 'FALSE';
+  if (I.com >= 0) r.v[I.com] = f.com; if (I.plan >= 0) r.v[I.plan] = f.plan; if (I.resp >= 0) r.v[I.resp] = f.resp;
+  if (I.dl >= 0) r.v[I.dl] = f.dl ? fd(f.dl).replace(/(\d\d)$/, '20$1') : '';
+  r.e = f.evid;
+  const cSt = HB.hdr.findIndex(x => x.toUpperCase().indexOf('STATUS') === 0); if (cSt >= 0 && f.st) r.v[cSt] = f.st;
+}
+async function traerEdiciones() {
+  if (!D.cfg.webApp) return;
+  try { const r = await (await fetch(D.cfg.webApp + '?action=bajas&t=' + Date.now())).json(); if (r.ok) Object.entries(r.rows).forEach(([c, f]) => aplicarEdicion(c, f)); } catch (e) { }
+}
+function editarBaja(code) {
+  const b = D.bajas.find(x => x.c === code) || { c: code };
+  const resps = [...new Set(D.bajas.map(x => x.spv).concat(D.bajas.map(x => (x.prom || '').replace(/^\d+--/, ''))).filter(Boolean))].sort();
+  $('#modal').innerHTML = `<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="box">
+    <h3>Baja ${esc(code)} · ${esc(b.rs || '')}</h3><div class="small muted">${esc(b.spv || '')} · ${esc((b.prom || '').replace(/^\d+--/, ''))} · pedido ${fd(b.fi)} · ${b.dh != null ? b.dh + ' días hábiles' : ''}</div>
+    <label class="okchk"><input type="checkbox" id="e_ok" ${b.ok ? 'checked' : ''}> <b>OK supervisor</b> — la baja está controlada</label>
+    <label>Plan de acción</label><textarea id="e_plan" placeholder="Qué se va a hacer, cómo y cuándo">${esc(b.plan || '')}</textarea>
+    <div class="grid g2" style="gap:10px"><div><label>Responsable</label><input type="text" id="e_resp" list="e_resps" value="${esc(b.resp || b.spv || '')}"><datalist id="e_resps">${resps.map(r => `<option value="${esc(r)}">`).join('')}</datalist></div>
+    <div><label>Deadline</label><input type="date" id="e_dl" value="${esc(b.dl || '')}"></div></div>
+    <label>Comentarios</label><input type="text" id="e_com" value="${esc(b.com || '')}">
+    <label>Link de evidencia (foto, mail, Drive)</label><input type="url" id="e_evid" placeholder="https://…" value="${esc(b.evid || '')}">
+    <div style="margin-top:14px;padding:10px 12px;border-radius:10px;background:#F5F8FB;border:1px dashed var(--line2)">
+      <label class="okchk" style="margin:0"><input type="checkbox" id="e_desc" ${b.estado === 'DESCARTADA' ? 'checked' : ''} onchange="$('#e_mot').style.display=this.checked?'block':'none'"> <b>Este pedido de baja no corresponde</b> (error de carga, el cliente sigue)</label>
+      <div id="e_mot" style="display:${b.estado === 'DESCARTADA' ? 'block' : 'none'}"><label>Motivo</label><input type="text" id="e_motivo" placeholder="Ej.: se cargó mal el código, el cliente sigue comprando" value="${esc((b.com || '').replace(/^NO CORRESPONDE:\s*/, ''))}">
+      <div class="small muted" style="margin-top:4px">Queda con STATUS "NO REALIZADO" en la hoja BAJA y sale de pendientes y alertas.</div></div></div>
+    <div id="e_err" class="small" style="color:#d03b3b;margin-top:8px"></div>
+    <div class="acts2"><button class="btn" onclick="cerrarModal()">Cancelar</button><button class="btn dark" id="e_btn" onclick="guardarBaja('${esc(code)}')">💾 Guardar en el Sheet</button></div></div></div>`;
+}
+async function guardarBaja(code, soloOk) {
+  let campos = soloOk != null ? { ok: soloOk } : { ok: $('#e_ok').checked, plan: $('#e_plan').value.trim(), resp: $('#e_resp').value.trim(), dl: $('#e_dl').value, com: $('#e_com').value.trim(), evid: $('#e_evid').value.trim(), descartar: $('#e_desc').checked };
+  if (campos.descartar) { const mo = $('#e_motivo').value.trim(); if (!mo) { $('#e_err').textContent = 'Escribí el motivo por el que no corresponde.'; return; } campos.com = 'NO CORRESPONDE: ' + mo; }
+  const btn = $('#e_btn'); if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+  try {
+    const r = await (await fetch(D.cfg.webApp, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'guardarBaja', clave: S.user.clave, codigo: code, campos }) })).json();
+    if (!r.ok) { if ($('#e_err')) $('#e_err').textContent = r.error; else toast('⚠ ' + r.error); if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar en el Sheet'; } return; }
+    aplicarEdicion(code, r.fila); cerrarModal(); toast(r.cambios ? '✅ Guardado en la hoja BAJA' : 'Sin cambios'); render();
+  } catch (e) { if ($('#e_err')) $('#e_err').textContent = 'No pude guardar: ' + e.message; else toast('⚠ No pude guardar'); if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar en el Sheet'; } }
+}
+
 function render() {
   if (!D) return;
+  renderUser();
   CH.forEach(c => c.destroy()); CH = [];
   if (MAP) { MAP.remove(); MAP = null; }
   renderNav();
@@ -633,6 +749,17 @@ async function init() {
   $('#lnkSheet').href = sheetLink(D.cfg.gidAlta);
   const h = location.hash.replace('#', ''); if (TABS.some(t => t[0] === h)) S.tab = h;
   render();
+  traerEdiciones().then(render);
+  if (EMBED) try { parent.postMessage({ abmListo: true }, '*'); } catch (e) { }
+}
+if (EMBED) {
+  const alto = () => { try { parent.postMessage({ abmAlto: document.documentElement.scrollHeight }, '*'); } catch (e) { } };
+  new ResizeObserver(alto).observe(document.body);
+  window.addEventListener('message', async e => {
+    if (!/distribuidorazuppa\.github\.io|ccckpizuppa\.netlify\.app/.test(e.origin)) return;
+    const a = e.data && e.data.abmAuth; if (!a || !a.clave || !D || !D.cfg.webApp || (S.user && S.user.clave === a.clave)) return;
+    try { const r = await (await fetch(D.cfg.webApp + '?action=login&clave=' + encodeURIComponent(a.clave))).json(); if (r.ok) { S.user = { clave: a.clave, nombre: r.nombre, spv: r.spv }; guardarUser(S.user); render(); } } catch (err) { }
+  });
 }
 window.addEventListener('hashchange', () => { const h = location.hash.replace('#', ''); if (D && TABS.some(t => t[0] === h) && h !== S.tab) { S.tab = h; render(); } });
 init();
