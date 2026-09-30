@@ -6,145 +6,182 @@
 <title>ABM Galaxia · Zuppa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  --paper:#F5EFE3; --paper2:#EFE6D4; --card:#FFFCF6; --ink:#1E1912; --ink2:#3B3328; --muted:#7A6F60; --line:#E3D7C3; --line2:#D6C7AE;
-  --green:#2F7D4F; --green-bg:#E3F1E6; --amber:#C98300; --amber-bg:#FBEFD2; --red:#B4321F; --red-bg:#F8E0DA; --blue:#2A5CAA; --blue-bg:#E2EAF6;
-  --violet:#6B4FB8; --shadow:0 1px 0 rgba(30,25,18,.04),0 6px 18px -10px rgba(30,25,18,.25);
-  --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; --sans:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+  --bg:#EEF4F7; --card:#FFFFFF; --ink:#16213A; --ink2:#44506A; --muted:#8792A8; --line:#E3EAF1; --line2:#D2DCE6;
+  --nav:#13294B; --navink:#C9D6EA; --accent:#19B3B9; --violet:#6C5CE7;
+  --alta-bg:#DDF3F4; --baja-bg:#FDEBDF; --good-bg:#E4F5E4; --warn-bg:#FFF4D9; --crit-bg:#FBE4E4; --amp:#E0A100;
+  --r:16px; --shadow:0 1px 2px rgba(22,33,58,.04),0 8px 24px -14px rgba(22,33,58,.22);
+  --title:'Fraunces',Georgia,serif; --sans:'Poppins',system-ui,-apple-system,Segoe UI,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
-a{color:var(--blue)}
-.wrap{max-width:1320px;margin:0 auto;padding:0 20px 60px}
-header.top{padding:22px 0 14px;display:flex;gap:18px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--line2)}
-.brand .kick{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.brand h1{font-family:var(--serif);font-weight:800;font-size:34px;margin:2px 0 0;letter-spacing:-.01em}
-.brand h1 em{font-style:normal;color:var(--amber)}
-.brand .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
-.toplinks{display:flex;gap:8px;flex-wrap:wrap}
-.btn{font-family:var(--mono);font-size:12px;border:1px solid var(--line2);background:var(--card);color:var(--ink);padding:7px 11px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
-.btn:hover{border-color:var(--ink2)}
-.btn.dark{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.bar{position:sticky;top:0;z-index:20;background:rgba(245,239,227,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin:0 -20px;padding:10px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
-nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
-nav.tabs button{font-family:var(--mono);font-size:12.5px;background:none;border:1px solid transparent;padding:7px 12px;border-radius:999px;cursor:pointer;color:var(--ink2)}
-nav.tabs button.on{background:var(--ink);color:var(--paper)}
-nav.tabs button .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:var(--red);color:#fff;font-size:10.5px;line-height:17px}
-.qsel{display:flex;gap:4px;align-items:center;font-family:var(--mono);font-size:12px}
-.qsel span{color:var(--muted);margin-right:4px}
-.qsel button{font-family:var(--mono);font-size:12px;border:1px solid var(--line2);background:var(--card);padding:5px 10px;border-radius:7px;cursor:pointer}
-.qsel button.on{background:var(--amber);border-color:var(--amber);color:#fff}
-section.view{display:none;padding-top:18px}
-section.view.on{display:block}
-h2.sec{font-family:var(--serif);font-weight:600;font-size:22px;margin:26px 0 10px;display:flex;align-items:baseline;gap:10px}
-h2.sec small{font-family:var(--sans);font-size:12.5px;color:var(--muted);font-weight:400}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13px;line-height:1.45}
+a{color:#1E6FD0}
+.shell{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+aside.side{background:linear-gradient(180deg,var(--nav),#0F2140);color:var(--navink);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+.logo{display:flex;gap:10px;align-items:center;padding:0 8px 18px;color:#fff;font-weight:600;font-size:15px}
+.logo i{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--violet));display:grid;place-items:center;font-style:normal;font-size:17px}
+.logo small{display:block;font-weight:400;font-size:11px;color:var(--navink)}
+.nav button{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;cursor:pointer;font-size:13px;color:var(--navink)}
+.nav button:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav button.on{background:var(--accent);color:#06222A;font-weight:600}
+.nav button .ic{width:20px;text-align:center;font-size:15px}
+.nav button .n{margin-left:auto;background:#d03b3b;color:#fff;border-radius:10px;font-size:10.5px;padding:0 6px;line-height:18px;font-weight:600}
+.nav button.on .n{background:#06222A}
+.side .bottom{margin-top:auto;padding:12px 8px 0;border-top:1px solid rgba(255,255,255,.08)}
+.qsel{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:6px}
+.qsel button{all:unset;text-align:center;font-size:11.5px;padding:6px 0;border-radius:8px;background:rgba(255,255,255,.07);cursor:pointer;color:var(--navink)}
+.qsel button.on{background:#fff;color:var(--nav);font-weight:600}
+.side .upd{font-size:11px;margin-top:10px;color:#8FA3C4}
+main{padding:22px 26px 50px;min-width:0}
+header.top{display:flex;gap:18px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--title);font-weight:800;font-size:34px;margin:2px 0 0;letter-spacing:-.01em;color:var(--ink)}
+h1 em{font-style:normal;color:var(--amp)}
+.sub{color:var(--muted);font-size:12px;margin-top:2px}
+.btn{font-family:var(--sans);font-size:12px;border:1px solid var(--line2);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;gap:6px;align-items:center;white-space:nowrap;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.dark{background:var(--nav);color:#fff;border-color:var(--nav)}
 .grid{display:grid;gap:14px}
-.k6{grid-template-columns:repeat(6,1fr)} .k4{grid-template-columns:repeat(4,1fr)} .k3{grid-template-columns:repeat(3,1fr)} .k2{grid-template-columns:repeat(2,1fr)}
-@media (max-width:1100px){.k6{grid-template-columns:repeat(3,1fr)} .k4{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:700px){nav.tabs{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:2px} nav.tabs button{white-space:nowrap} .k6,.k4,.k3,.k2{grid-template-columns:1fr} .brand h1{font-size:26px} .wrap{padding:0 14px 50px} .bar{margin:0 -14px;padding:8px 14px}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-width:0}
-.kpi .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.kpi .val{font-family:var(--serif);font-weight:800;font-size:38px;line-height:1.05;margin:6px 0 2px;letter-spacing:-.02em}
-.kpi .val small{font-size:17px;font-weight:600;color:var(--muted)}
-.kpi .kf{font-size:12.5px;color:var(--ink2)}
-.kpi.click{cursor:pointer} .kpi.click:hover{border-color:var(--ink2)}
-.meter{height:7px;border-radius:5px;background:var(--paper2);overflow:hidden;margin:8px 0 6px}
-.meter i{display:block;height:100%;border-radius:5px}
-.good{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
-.pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
-.p-g{background:var(--green-bg);color:var(--green)} .p-a{background:var(--amber-bg);color:#8a5a00} .p-r{background:var(--red-bg);color:var(--red)} .p-b{background:var(--blue-bg);color:var(--blue)} .p-n{background:var(--paper2);color:var(--ink2)}
-.alerts{display:grid;gap:8px}
-.alert{display:flex;gap:12px;align-items:center;padding:11px 14px;border-radius:11px;border:1px solid var(--line);background:var(--card);cursor:pointer}
-.alert:hover{border-color:var(--ink2)}
-.alert .num{font-family:var(--serif);font-weight:800;font-size:24px;min-width:48px;text-align:right}
-.alert .txt{flex:1} .alert .txt b{font-weight:600} .alert .txt div{font-size:12px;color:var(--muted)}
-.alert .go{font-family:var(--mono);font-size:12px;color:var(--muted)}
-.alert.r{border-left:5px solid var(--red)} .alert.a{border-left:5px solid var(--amber)} .alert.b{border-left:5px solid var(--blue)} .alert.g{border-left:5px solid var(--green)}
-.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--card);max-height:640px}
-table{border-collapse:collapse;width:100%;font-size:12.8px}
-th{position:sticky;top:0;background:var(--paper2);font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:9px 10px;border-bottom:1px solid var(--line2);white-space:nowrap;cursor:pointer;z-index:1}
-td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-tr:hover td{background:#FBF6EC}
-td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-td a,td .pill{white-space:nowrap}
-td.code{font-family:var(--mono);font-size:12px}
-.muted{color:var(--muted)} .small{font-size:12px}
-.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}
-.filters select,.filters input{font-family:var(--sans);font-size:13px;padding:7px 9px;border:1px solid var(--line2);border-radius:8px;background:var(--card);color:var(--ink)}
-.filters input{min-width:220px}
+.g6{grid-template-columns:repeat(6,minmax(0,1fr))} .g4{grid-template-columns:repeat(4,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g21{grid-template-columns:minmax(0,2fr) minmax(0,1fr)} .g12{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);min-width:0;border:1px solid rgba(210,220,230,.6)}
+.card h3{margin:0 0 10px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.card h3 small{font-weight:400;color:var(--muted);font-size:11.5px}
+.sec{font-size:17px;font-weight:600;margin:22px 0 10px;display:flex;align-items:baseline;gap:10px}
+.sec small{font-size:12px;color:var(--muted);font-weight:400}
+.tile{cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:14px 16px}
+.tile .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.tile:hover{border-color:var(--accent)}
+.tile .lab{font-size:11.5px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .val{font-size:26px;font-weight:700;line-height:1.1;letter-spacing:-.01em}
+.tile .ft{font-size:11.5px;color:var(--ink2)}
+.ring{flex:0 0 auto}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap;font-weight:500}
+.p-g{background:var(--good-bg);color:#0a7a0a} .p-w{background:var(--warn-bg);color:#8a6000} .p-c{background:var(--crit-bg);color:#b12a2a} .p-n{background:#EEF2F6;color:var(--ink2)} .p-a{background:var(--alta-bg);color:#077580} .p-b{background:var(--baja-bg);color:#B24D17} .p-v{background:#ECEAFD;color:#4B3DC4}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font-family:var(--mono);font-size:12px;padding:6px 11px;border-radius:999px;border:1px solid var(--line2);background:var(--card);cursor:pointer}
-.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.chip .c{opacity:.7;margin-left:4px}
-.board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-@media (max-width:980px){.board{grid-template-columns:1fr}}
-.col{background:var(--paper2);border-radius:14px;padding:10px;min-height:120px}
-.col h3{margin:4px 6px 10px;font-family:var(--serif);font-size:17px;display:flex;justify-content:space-between;align-items:center}
-.col.r h3{color:var(--red)} .col.a h3{color:#8a5a00} .col.g h3{color:var(--green)}
-.bc{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px}
-.bc .t{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.bc .t b{font-family:var(--mono);font-size:13px}
-.bc .rs{font-weight:600;font-size:13px;margin:2px 0}
-.bc .meta{font-size:11.5px;color:var(--muted)}
-.bc .prog{height:6px;border-radius:4px;background:var(--paper2);margin:8px 0 6px;position:relative;overflow:hidden}
+.chip{font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--line2);background:var(--card);cursor:pointer;font-weight:500}
+.chip.on{background:var(--nav);border-color:var(--nav);color:#fff}
+.chip .c{opacity:.65;margin-left:5px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 12px}
+.filters select,.filters input{font-family:var(--sans);font-size:12.5px;padding:7px 10px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--ink)}
+.filters input{min-width:220px}
+.tbl-wrap{overflow:auto;border-radius:14px;background:var(--card);max-height:560px;border:1px solid var(--line);box-shadow:var(--shadow)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
+th{position:sticky;top:0;background:#F5F8FB;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:8px 9px;border-bottom:1px solid var(--line2);white-space:nowrap;z-index:2;font-weight:600}
+td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+td.w{white-space:normal;min-width:180px;max-width:320px}
+tr:hover td{background:#F7FBFC}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.code{font-family:var(--mono);font-size:11.5px}
+.muted{color:var(--muted)} .small{font-size:11.5px}
+.av{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#DDE6EF;display:inline-grid;place-items:center;font-size:10px;font-weight:600;color:var(--ink2);flex:0 0 auto;vertical-align:middle;border:2px solid #fff;box-shadow:0 0 0 1px var(--line2)}
+.av.lg{width:52px;height:52px;font-size:15px}
+.who{display:inline-flex;align-items:center;gap:7px}
+.rank{display:grid;grid-template-columns:22px 30px minmax(90px,170px) 1fr 50px;gap:8px;align-items:center;padding:3px 0;cursor:pointer}
+.rank .nm div{display:inline;margin-left:6px}
+.rank .pos{font-weight:700;color:var(--muted);font-size:12px;text-align:right}
+.rank .bar{height:10px;border-radius:5px;background:#EEF2F6;overflow:hidden}
+.rank .bar i{display:block;height:100%;border-radius:5px}
+.rank .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.rank:hover .nm{color:var(--accent)}
+#map{height:430px;border-radius:12px;z-index:1}
+.maptools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.loc{display:grid;grid-template-columns:minmax(0,1fr) 34px 34px;gap:6px;align-items:center;padding:5px 4px;border-radius:8px;cursor:pointer;font-size:12px}
+.loc:hover{background:#F3F8FA}
+.loc .b2{grid-column:1/-1;display:flex;height:6px;border-radius:3px;overflow:hidden;gap:2px;margin-top:-2px}
+.loc .b2 i{display:block;height:100%}
+.loc .n{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.spv{display:flex;gap:14px;align-items:center}
+.spv h4{margin:0;font-size:15px}
+.spv.st{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.spv.st div{background:#F5F8FB;border-radius:10px;padding:8px}
+.spv.st b{display:block;font-size:17px}
+.spv.st span{font-size:10.5px;color:var(--muted)}
+.pend{display:flex;gap:8px;flex-wrap:wrap}
+.pend button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;box-shadow:var(--shadow)}
+.pend button b{font-size:16px}
+.pend button:hover{border-color:var(--accent)}
+.funnel{display:flex;flex-direction:column;gap:6px}
+.fst{display:grid;grid-template-columns:170px 1fr 50px;gap:10px;align-items:center;cursor:pointer;padding:4px;border-radius:10px}
+.fst:hover,.fst.on{background:#F1F7F9}
+.fst.on{outline:2px solid var(--accent)}
+.fst .shape{height:32px;border-radius:8px;display:flex;align-items:center;padding:0 10px;color:#fff;font-weight:600;font-size:12px;transition:width .3s;min-width:40px}
+.fst .lbl b{display:block;font-size:12.5px} .fst .lbl span{font-size:11px;color:var(--muted)}
+.fst .v{text-align:right;font-weight:700;font-size:15px}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.col{background:#E7EEF3;border-radius:14px;padding:10px;max-height:620px;overflow:auto}
+.col h4{margin:2px 4px 10px;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.bc{background:var(--card);border-radius:12px;padding:10px 11px;margin-bottom:8px;box-shadow:var(--shadow)}
+.bc .t{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.bc .rs{font-weight:600;font-size:12.5px;margin:2px 0}
+.bc .meta{font-size:11px;color:var(--muted)}
+.bc .prog{height:6px;border-radius:4px;background:#EEF2F6;margin:7px 0 5px;position:relative;overflow:hidden}
 .bc .prog i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
-.bc .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
-.bc .plan{font-size:12px;margin-top:6px;padding:6px 8px;border-radius:7px;background:var(--paper)}
-.bc .plan.no{background:var(--amber-bg);color:#7a4f00}
-.hbar{display:grid;grid-template-columns:minmax(120px,240px) 1fr 54px;gap:8px;align-items:center;margin:6px 0;font-size:12.5px}
-.hbar .b{height:14px;border-radius:4px;background:var(--paper2);overflow:hidden}
-.hbar .b i{display:block;height:100%;border-radius:4px}
-.hbar .v{font-family:var(--mono);font-size:12px;text-align:right}
-svg text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
-.legend{display:flex;gap:14px;font-size:12px;color:var(--ink2);margin-top:6px;flex-wrap:wrap}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-details.grp{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
-details.grp summary{cursor:pointer;padding:11px 14px;display:flex;gap:10px;align-items:center;list-style:none}
+.bc .plan{font-size:11.5px;margin-top:6px;padding:5px 7px;border-radius:7px;background:#F5F8FB}
+.bc .plan.no{background:var(--warn-bg);color:#7a5200}
+.bc .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.hb td.act{background:#F3F7FF;text-align:center}
+.hb td.act b{display:inline-block;min-width:22px;padding:1px 6px;border-radius:6px;background:#1E6FD0;color:#fff;font-size:11px}
+.hb th.act{background:#E8F0FD;color:#1E4E96}
+.hb td.sticky,.hb th.sticky{position:sticky;left:0;z-index:3;background:#fff}
+.hb th.sticky{background:#F5F8FB;z-index:4}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px;box-shadow:var(--shadow)}
+.acts b{display:block;font-size:15px} .acts span{font-size:10.5px;color:var(--muted);text-transform:uppercase}
+.note{font-size:12px;color:var(--ink2);background:#F5F8FB;border:1px dashed var(--line2);border-radius:10px;padding:9px 12px}
+details.grp{background:var(--card);border-radius:12px;margin-bottom:8px;box-shadow:var(--shadow)}
+details.grp summary{cursor:pointer;padding:10px 14px;display:flex;gap:10px;align-items:center;list-style:none}
 details.grp summary::-webkit-details-marker{display:none}
-details.grp summary .cnt{font-family:var(--serif);font-weight:800;font-size:20px;min-width:40px;text-align:right}
+details.grp summary .cnt{font-weight:700;font-size:18px;min-width:40px;text-align:right}
 details.grp .body{padding:0 14px 12px}
-.note{font-size:12.5px;color:var(--ink2);background:var(--card);border:1px dashed var(--line2);border-radius:10px;padding:10px 12px}
-.spvcard h3{font-family:var(--serif);margin:0 0 8px;font-size:19px}
-.spvrow{display:grid;grid-template-columns:1fr auto;gap:6px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px}
-.spvrow:last-child{border-bottom:0}
-.empty{padding:26px;text-align:center;color:var(--muted);font-size:13px}
-.loading{padding:80px 0;text-align:center;font-family:var(--serif);font-size:22px;color:var(--muted)}
-.foot{margin-top:40px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
-body.embed header.top .toplinks{display:none}
-@media print{
-  .bar,.toplinks,.noprint,.filters{display:none!important}
-  section.view{display:none!important} section.view#v-auditor{display:block!important}
-  body{background:#fff} .card,.tbl-wrap{box-shadow:none;border-color:#ccc} .tbl-wrap{max-height:none;overflow:visible}
-  th{position:static}
-}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.loading{padding:80px 0;text-align:center;font-size:18px;color:var(--muted)}
+.chartbox{position:relative;height:250px}
+.chartbox.sm{height:190px}
+.legend{display:flex;gap:12px;font-size:11.5px;color:var(--ink2);flex-wrap:wrap;margin-top:6px}
+.leaflet-popup-content{font-family:var(--sans);font-size:12px}
+@media (max-width:1250px){.g6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.shell{grid-template-columns:1fr} aside.side{position:static;height:auto} .nav{display:flex;overflow-x:auto;gap:4px} .nav button{width:auto;white-space:nowrap} .g4,.g3,.g2,.g21,.g12,.board{grid-template-columns:1fr} .side .bottom{border:0;padding-top:4px}}
+@media (max-width:640px){.g6{grid-template-columns:repeat(2,minmax(0,1fr))} main{padding:16px 14px 40px} h1{font-size:26px} .filters input{min-width:0;flex:1}}
+@media print{aside.side,.noprint,.filters{display:none!important} .shell{display:block} body{background:#fff} .tbl-wrap{max-height:none;overflow:visible;box-shadow:none} th{position:static}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div class="brand">
-      <div class="kick">Distribuidora Zuppa · Galaxia 2026 · 2.1.2.4 / 2.1.2.6</div>
-      <h1>Altas <em>&amp;</em> Bajas de PDV</h1>
-      <div class="sub" id="sub">Cargando…</div>
+<div class="shell">
+  <aside class="side">
+    <div class="logo"><i>↕</i><div>ABM Galaxia<small>Distribuidora Zuppa</small></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="bottom">
+      <div class="small">Período</div>
+      <div class="qsel" id="qsel"></div>
+      <div class="upd" id="upd"></div>
     </div>
-    <div class="toplinks">
-      <a class="btn" id="lnkSheet" target="_blank" rel="noopener">📄 Abrir Sheet</a>
-      <button class="btn dark" onclick="goTab('auditor')">🧾 Vista auditor</button>
-    </div>
-  </header>
-  <div class="bar">
-    <nav class="tabs" id="tabs"></nav>
-    <div class="qsel" id="qsel"></div>
-  </div>
-  <div id="app"><div class="loading">Cargando datos…</div></div>
-  <div class="foot" id="foot"></div>
+  </aside>
+  <main>
+    <header class="top">
+      <div>
+        <div class="kick">Distribuidora Zuppa · Galaxia 2026 · 2.1.2.4 / 2.1.2.6</div>
+        <h1>Altas <em>&amp;</em> Bajas de PDV</h1>
+        <div class="sub" id="sub">Cargando…</div>
+      </div>
+      <div class="noprint" style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn" id="lnkSheet" target="_blank" rel="noopener">📄 Abrir Sheet</a>
+        <button class="btn dark" onclick="goTab('auditor')">🧾 Vista auditor</button>
+      </div>
+    </header>
+    <div id="app"><div class="loading">Cargando datos…</div></div>
+  </main>
 </div>
 <script>
 'use strict';
-const S = { tab: 'resumen', q: 'ANIO', spv: '', prom: '', txt: '', altaFiltro: 'todas', bajaSpv: '', ctlSev: '' };
-let D = null;
+const S = { tab: 'resumen', q: 'ANIO', spv: '', prom: '', txt: '', altaFiltro: 'todas', ctlSev: '', mapModo: 'ambas', mapVista: 'loc', etapa: 'TODAS', mesSel: '', hbStatus: '', hbAct: false, alertaVista: 'todas' };
+let D = null, FOTOS = {}, CH = [], MAP = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const nf = (n, d = 0) => (n == null || n === '' || isNaN(n)) ? '–' : Number(n).toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -152,11 +189,11 @@ const pct = (a, b) => b ? Math.round(a / b * 1000) / 10 : null;
 const pctTxt = v => v == null ? '–' : nf(v, v % 1 ? 1 : 0) + '%';
 const fd = s => { if (!s) return ''; const p = s.split('-'); return p[2] + '/' + p[1] + '/' + p[0].slice(2); };
 const MES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-const FUNC = { FUNCIONA: ['Funciona', 'p-g'], TARDIA: ['No · compró después', 'p-a'], NUNCA: ['No · nunca compró', 'p-r'], OBSERVACION: ['En observación', 'p-n'] };
-const SEM = { ROJO: ['+45 hábiles', 'p-r'], AMARILLO: ['31–45 hábiles', 'p-a'], VERDE: ['en plazo', 'p-g'], 'EN SLA': ['≤45 hábiles', 'p-g'], 'FUERA SLA': ['fuera de SLA', 'p-r'] };
+const COL = { alta: '#0E9AA7', baja: '#F07B3F', violet: '#6C5CE7', good: '#0ca30c', warn: '#fab219', crit: '#d03b3b', gris: '#A9B4C4' };
+const ETAPA = { FUNCIONA: ['Compraron en ≤30 días', COL.alta, 'p-a'], TARDIA: ['Compraron después', COL.violet, 'p-v'], NUNCA: ['Nunca compraron', COL.baja, 'p-b'], OBSERVACION: ['En observación (<30 días)', COL.gris, 'p-n'] };
+const SEM = { ROJO: ['⛔ +45 hábiles', 'p-c'], AMARILLO: ['⚠ 31–45 hábiles', 'p-w'], VERDE: ['✓ en plazo', 'p-g'], 'EN SLA': ['✓ ≤45 hábiles', 'p-g'], 'FUERA SLA': ['⛔ fuera de SLA', 'p-c'] };
 const params = new URLSearchParams(location.search);
-if (params.get('embed') === '1') document.body.classList.add('embed');
-if (params.get('spv')) { S.spv = params.get('spv').toUpperCase(); S.bajaSpv = S.spv; }
+if (params.get('spv')) S.spv = params.get('spv').toUpperCase();
 
 function sheetLink(gid, fila) { return D.cfg.sheetId ? `https://docs.google.com/spreadsheets/d/${D.cfg.sheetId}/edit#gid=${gid}` + (fila ? `&range=A${fila}` : '') : '#'; }
 function inQ(q) { return S.q === 'ANIO' || q === S.q; }
@@ -167,351 +204,432 @@ function bajasQ() { return bajasOk().filter(b => inQ(b.q)); }
 function pendientes() { return bajasOk().filter(b => b.estado !== 'COMPLETADO'); }
 function spvOf(x) { return x.spv || 'SIN SUPERVISOR'; }
 function causaDe(a) { return a.obs ? a.obs.toUpperCase() : (a.sug ? 'Sugerida: ' + a.sug : 'Sin causa'); }
-
-/* ---------------- métricas ---------------- */
 function met(al, bj) {
-  const m = { altas: al.length, sla: 0, fuera: 0, conCausa: 0, dias: 0, func: 0, tard: 0, nunca: 0, obs: 0, bajas: bj.length, comp: 0, bsla: 0, pend: 0, rojo: 0, amar: 0, verde: 0, dh: 0 };
+  const m = { altas: al.length, sla: 0, fuera: 0, conCausa: 0, dias: 0, func: 0, tard: 0, nunca: 0, obs: 0, bajas: bj.length, comp: 0, bsla: 0, pend: 0, rojo: 0, amar: 0, verde: 0 };
   al.forEach(a => { m.dias += a.dias || 0; if (a.sla) m.sla++; else { m.fuera++; if (a.obs) m.conCausa++; }
     if (a.func === 'FUNCIONA') m.func++; else if (a.func === 'TARDIA') m.tard++; else if (a.func === 'NUNCA') m.nunca++; else m.obs++; });
-  bj.forEach(b => { m.dh += b.dh || 0; if (b.estado === 'COMPLETADO') { m.comp++; if (b.sem === 'EN SLA') m.bsla++; } else { m.pend++; if (b.sem === 'ROJO') m.rojo++; else if (b.sem === 'AMARILLO') m.amar++; else m.verde++; } });
+  bj.forEach(b => { if (b.estado === 'COMPLETADO') { m.comp++; if (b.sem === 'EN SLA') m.bsla++; } else { m.pend++; if (b.sem === 'ROJO') m.rojo++; else if (b.sem === 'AMARILLO') m.amar++; else m.verde++; } });
   m.pSla = pct(m.sla, m.altas); m.pFunc = pct(m.func, m.altas - m.obs); m.pBsla = pct(m.bsla, m.comp); m.prom = m.altas ? m.dias / m.altas : null;
   return m;
 }
-function colorPct(p, ok = 95, mid = 90) { return p == null ? 'var(--muted)' : p >= ok ? 'var(--green)' : p >= mid ? 'var(--amber)' : 'var(--red)'; }
+function colorPct(p, ok = 95, mid = 90) { return p == null ? COL.gris : p >= ok ? COL.good : p >= mid ? COL.warn : COL.crit; }
+function qTxt() { return S.q === 'ANIO' ? 'año ' + D.cfg.anio : S.q + ' ' + D.cfg.anio; }
 
-/* ---------------- navegación ---------------- */
-const TABS = [['resumen', 'Resumen'], ['altas', 'Altas'], ['bajas', 'Bajas'], ['equipo', 'Supervisores y promotores'], ['funcionan', 'Altas que funcionan'], ['calidad', 'Calidad de datos'], ['auditor', 'Auditor']];
+function claveFoto(n) { n = String(n || '').toUpperCase(); if (n.includes('--')) n = n.split('--')[1]; return n.trim().split(/\s+/)[0]; }
+function avatar(n, lg) {
+  const k = claveFoto(n), src = FOTOS[k];
+  if (src) return `<img class="av${lg ? ' lg' : ''}" src="${src}" alt="${esc(k)}">`;
+  const ini = String(n || '?').replace(/^\d+--/, '').split(/\s+/).map(w => w[0]).join('').slice(0, 2);
+  return `<span class="av${lg ? ' lg' : ''}">${esc(ini)}</span>`;
+}
+function who(n) { return n ? `<span class="who">${avatar(n)}${esc(String(n).replace(/^\d+--/, ''))}</span>` : ''; }
+
+const TABS = [['resumen', '▦', 'Resumen'], ['altas', '＋', 'Altas'], ['compraron', '🛒', 'Altas que compraron'], ['hoja', '▤', 'Bajas · hoja completa'], ['alertas', '⚠', 'Alertas de bajas'], ['equipo', '👥', 'Supervisores y promotores'], ['calidad', '✓', 'Calidad de datos'], ['auditor', '🧾', 'Auditor']];
 function goTab(t, extra) { if (extra) Object.assign(S, extra); S.tab = t; history.replaceState(null, '', '#' + t + location.search); render(); window.scrollTo({ top: 0 }); }
 function setQ(q) { S.q = q; render(); }
 function renderNav() {
-  const nRojo = pendientes().filter(b => b.sem === 'ROJO').length;
-  const nAlt = D.altasPend.filter(p => !p.existe && p.dias > D.cfg.slaAlta).length + altasAnio().filter(a => !a.sla && !a.obs).length;
-  const nCal = D.control.filter(c => c.sev === 'alta').length;
-  const badge = { altas: nAlt, bajas: nRojo, calidad: nCal };
-  $('#tabs').innerHTML = TABS.map(([k, l]) => `<button class="${S.tab === k ? 'on' : ''}" onclick="goTab('${k}')">${l}${badge[k] ? `<span class="n">${badge[k]}</span>` : ''}</button>`).join('');
-  $('#qsel').innerHTML = '<span>Trimestre</span>' + ['Q1', 'Q2', 'Q3', 'Q4', 'ANIO'].map(q => `<button class="${S.q === q ? 'on' : ''}" onclick="setQ('${q}')">${q === 'ANIO' ? 'Año' : q}</button>`).join('');
+  const badge = {
+    altas: D.altasPend.filter(p => !p.existe && p.dias > D.cfg.slaAlta).length + altasAnio().filter(a => !a.sla && !a.obs).length,
+    alertas: pendientes().filter(b => b.sem === 'ROJO').length,
+    calidad: D.control.filter(c => c.sev === 'alta').length
+  };
+  $('#nav').innerHTML = TABS.map(([k, ic, l]) => `<button class="${S.tab === k ? 'on' : ''}" onclick="goTab('${k}')"><span class="ic">${ic}</span>${l}${badge[k] ? `<span class="n">${badge[k]}</span>` : ''}</button>`).join('');
+  $('#qsel').innerHTML = ['Q1', 'Q2', 'Q3', 'Q4', 'ANIO'].map(q => `<button class="${S.q === q ? 'on' : ''}" onclick="setQ('${q}')">${q === 'ANIO' ? 'Año' : q}</button>`).join('');
 }
 
-/* ---------------- gráficos SVG ---------------- */
-function barsMes() {
-  const al = altasAnio(), bj = bajasOk();
-  const A = Array(12).fill(0), B = Array(12).fill(0), P = Array(12).fill(0);
-  al.forEach(a => A[+a.ff.slice(5, 7) - 1]++);
-  bj.forEach(b => { if (b.ff && b.ff.slice(0, 4) === String(D.cfg.anio)) B[+b.ff.slice(5, 7) - 1]++; if (b.fi.slice(0, 4) === String(D.cfg.anio)) P[+b.fi.slice(5, 7) - 1]++; });
-  const last = Math.max(...A.map((v, i) => v || B[i] ? i : 0)) + 1;
-  const n = Math.max(last, 9), W = 640, H = 220, pl = 30, pb = 26, mx = Math.max(...A, ...B, 1) * 1.12;
-  const bw = (W - pl) / n, y = v => H - pb - v / mx * (H - pb - 12);
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Altas y bajas por mes">`;
-  for (let g = 0; g <= 4; g++) { const v = Math.round(mx / 4 * g), yy = y(v); s += `<line x1="${pl}" x2="${W}" y1="${yy}" y2="${yy}" stroke="#E3D7C3" stroke-dasharray="2 3"/><text x="${pl - 6}" y="${yy + 3}" text-anchor="end">${v}</text>`; }
-  for (let i = 0; i < n; i++) {
-    const x = pl + i * bw + bw * .14, w = bw * .34;
-    s += `<rect x="${x}" y="${y(A[i])}" width="${w}" height="${H - pb - y(A[i])}" rx="3" fill="#2F7D4F"><title>${MES[i]}: ${A[i]} altas</title></rect>`;
-    s += `<rect x="${x + w + 2}" y="${y(B[i])}" width="${w}" height="${H - pb - y(B[i])}" rx="3" fill="#B4321F"><title>${MES[i]}: ${B[i]} bajas completadas (${P[i]} pedidas)</title></rect>`;
-    if (A[i]) s += `<text x="${x + w / 2}" y="${y(A[i]) - 4}" text-anchor="middle" style="fill:#2F7D4F">${A[i]}</text>`;
-    if (B[i]) s += `<text x="${x + w * 1.5 + 2}" y="${y(B[i]) - 4}" text-anchor="middle" style="fill:#B4321F">${B[i]}</text>`;
-    s += `<text x="${pl + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${MES[i]}</text>`;
-  }
-  return s + '</svg><div class="legend"><span><i style="background:#2F7D4F"></i>Altas</span><span><i style="background:#B4321F"></i>Bajas completadas</span></div>';
+function ring(p, color, size = 58) {
+  const r = size / 2 - 6, c = 2 * Math.PI * r, v = Math.max(0, Math.min(100, p || 0));
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${pctTxt(p)}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#EEF2F6" stroke-width="7"/>
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c * v / 100} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/>
+    <text x="50%" y="53%" text-anchor="middle" dominant-baseline="middle" style="font:600 12px Poppins,sans-serif;fill:#16213A">${p == null ? '–' : Math.round(p) + '%'}</text></svg>`;
 }
-function histo(vals, cortes, labels, colores, titulo) {
-  const c = labels.map(() => 0);
-  vals.forEach(v => { let k = cortes.findIndex(t => v <= t); if (k < 0) k = labels.length - 1; c[k]++; });
-  const mx = Math.max(...c, 1), tot = vals.length || 1;
-  return c.map((v, i) => `<div class="hbar"><div>${labels[i]}</div><div class="b"><i style="width:${v / mx * 100}%;background:${colores[i]}"></i></div><div class="v">${v} <span class="muted">${Math.round(v / tot * 100)}%</span></div></div>`).join('');
+function spark(vals, color) {
+  const w = 70, h = 30, mx = Math.max(...vals, 1), n = vals.length;
+  const pts = vals.map((v, i) => `${(i / (n - 1 || 1)) * w},${h - 3 - v / mx * (h - 6)}`).join(' ');
+  return `<svg width="${w}" height="${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
-function hbars(obj, color, onclick) {
-  const e = Object.entries(obj).sort((a, b) => b[1] - a[1]), mx = Math.max(1, ...e.map(x => x[1]));
-  if (!e.length) return '<div class="empty">Sin casos 🎉</div>';
-  return e.map(([k, v]) => `<div class="hbar" ${onclick ? `style="cursor:pointer" onclick="${onclick(k)}"` : ''}><div>${esc(k)}</div><div class="b"><i style="width:${v / mx * 100}%;background:${typeof color === 'function' ? color(k) : color}"></i></div><div class="v">${v}</div></div>`).join('');
+function tile(lab, val, ft, vis, click) { return `<div class="card tile" onclick="${click || ''}"><div class="lab">${lab}</div><div class="row"><div style="min-width:0"><div class="val">${val}</div><div class="ft">${ft}</div></div>${vis || ''}</div></div>`; }
+function tabla(cols, rows, cls) {
+  if (!rows.length) return '<div class="card empty">No hay casos con este filtro.</div>';
+  return `<div class="tbl-wrap"><table class="${cls || ''}"><thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>` +
+    rows.map(r => '<tr>' + r.map(c => (c && typeof c === 'object') ? `<td class="${c.cls || 'num'}">${c.v}</td>` : `<td>${c == null ? '' : c}</td>`).join('') + '</tr>').join('') + '</tbody></table></div>' +
+    `<div class="small muted" style="margin-top:6px">${rows.length} filas</div>`;
+}
+function rankList(items, color, onclick) {
+  const mx = Math.max(1, ...items.map(x => x.v));
+  return items.map((x, i) => `<div class="rank" onclick="${onclick ? onclick(x.k) : ''}"><span class="pos">${i + 1}</span>${avatar(x.k)}<span class="nm">${esc(x.k.replace(/^\d+--/, ''))}${x.sub ? `<div class="small muted">${x.sub}</div>` : ''}</span><span class="bar"><i style="width:${x.v / mx * 100}%;background:${color}"></i></span><span class="v">${x.lbl != null ? x.lbl : x.v}</span></div>`).join('') || '<div class="empty">Sin datos</div>';
+}
+function chart(id, cfg) { const el = document.getElementById(id); if (!el || !window.Chart) return; CH.push(new Chart(el, cfg)); }
+function baseOpts(extra) {
+  return Object.assign({ responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'rectRounded', font: { family: 'Poppins', size: 11 } } },
+      tooltip: { backgroundColor: '#13294B', padding: 10, titleFont: { family: 'Poppins' }, bodyFont: { family: 'Poppins' } } },
+    scales: { x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#8792A8' } }, y: { beginAtZero: true, grid: { color: '#EEF2F6' }, border: { display: false }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#8792A8', precision: 0 } } } }, extra || {});
 }
 
-/* ---------------- RESUMEN ---------------- */
+/* ---------- RESUMEN ---------- */
+function mesesArr(fn) { const a = Array(12).fill(0); fn(a); return a; }
 function vResumen() {
-  const m = met(altasQ(), bajasQ());
-  const pend = pendientes();
+  const al = altasQ(), bj = bajasQ(), m = met(al, bj), pend = pendientes();
+  const A = mesesArr(a => altasAnio().forEach(x => a[+x.ff.slice(5, 7) - 1]++));
+  const B = mesesArr(a => bajasOk().forEach(x => { if (x.ff && x.ff.slice(0, 4) === String(D.cfg.anio)) a[+x.ff.slice(5, 7) - 1]++; }));
+  const last = Math.max(8, ...A.map((v, i) => v || B[i] ? i : 0)) + 1;
   const pr = pend.filter(b => b.sem === 'ROJO').length, pa = pend.filter(b => b.sem === 'AMARILLO').length, pv = pend.filter(b => b.sem === 'VERDE').length;
-  const k = (lab, val, foot, extra = '', click = '') => `<div class="card kpi ${click ? 'click' : ''}" ${click ? `onclick="${click}"` : ''}><div class="lab">${lab}</div><div class="val">${val}</div>${extra}<div class="kf">${foot}</div></div>`;
-  const meter = (p, ok, mid) => `<div class="meter"><i style="width:${p || 0}%;background:${colorPct(p, ok, mid)}"></i></div>`;
-  let h = `<div class="grid k6">
-    ${k('Altas realizadas', nf(m.altas), `Promedio <b>${nf(m.prom, 1)}</b> días`, '', "goTab('altas',{altaFiltro:'todas'})")}
-    ${k('Altas en ≤ 3 días', `<span style="color:${colorPct(m.pSla)}">${pctTxt(m.pSla)}</span>`, `${nf(m.sla)} de ${nf(m.altas)} · SLA Galaxia 3 días`, meter(m.pSla, 95, 90), "goTab('altas',{altaFiltro:'fuera'})")}
-    ${k('Altas +3 días', nf(m.fuera), `Con causa cargada: <b class="${m.conCausa === m.fuera ? 'good' : 'bad'}">${m.conCausa}/${m.fuera}</b>`, '', "goTab('altas',{altaFiltro:'sincausa'})")}
-    ${k('Altas que funcionan', `<span style="color:${colorPct(m.pFunc, 80, 65)}">${pctTxt(m.pFunc)}</span>`, `Nunca compraron: <b class="bad">${m.nunca}</b> · tardías ${m.tard}`, meter(m.pFunc, 80, 65), "goTab('funcionan')")}
-    ${k('Bajas en ≤ 45 hábiles', `<span style="color:${colorPct(m.pBsla)}">${pctTxt(m.pBsla)}</span>`, `${nf(m.bsla)} de ${nf(m.comp)} completadas`, meter(m.pBsla, 95, 90), "goTab('bajas')")}
-    ${k('Bajas pendientes hoy', nf(pend.length), `<span class="pill p-r">${pr} rojo</span> <span class="pill p-a">${pa} amarillo</span> <span class="pill p-g">${pv} verde</span>`, '', "goTab('bajas')")}
+  let h = `<div class="grid g6">
+    ${tile('Altas realizadas', nf(m.altas), `prom. ${nf(m.prom, 1)} días`, spark(A.slice(0, last), COL.alta), "goTab('altas',{altaFiltro:'todas'})")}
+    ${tile('Altas en ≤ 3 días', pctTxt(m.pSla), `${m.fuera} fuera · ${m.conCausa} con causa`, ring(m.pSla, colorPct(m.pSla)), "goTab('altas',{altaFiltro:'fuera'})")}
+    ${tile('Altas que compraron', pctTxt(m.pFunc), `${m.nunca} nunca compraron`, ring(m.pFunc, COL.alta), "goTab('compraron')")}
+    ${tile('Bajas completadas', nf(m.comp), `${m.bajas} pedidas en el período`, spark(B.slice(0, last), COL.baja), "goTab('hoja')")}
+    ${tile('Bajas en ≤ 45 hábiles', pctTxt(m.pBsla), `${m.comp - m.bsla} fuera de SLA`, ring(m.pBsla, colorPct(m.pBsla)), "goTab('alertas')")}
+    ${tile('Bajas pendientes hoy', nf(pend.length), `<span class="pill p-c">⛔ ${pr}</span> <span class="pill p-w">⚠ ${pa}</span> <span class="pill p-g">✓ ${pv}</span>`, '', "goTab('alertas')")}
   </div>`;
-
-  // Qué hacer hoy
-  const al = altasAnio();
-  const items = [];
-  const pendV = D.altasPend.filter(p => !p.existe && p.dias > D.cfg.slaAlta);
-  if (pendV.length) items.push(['r', pendV.length, 'altas pedidas hace más de 3 días que no aparecen en la base', 'Revisar con CXC / administración. Pueden tener el CUIT mal cargado.', "goTab('altas',{altaFiltro:'pend'})"]);
-  const sc = al.filter(a => !a.sla && !a.obs);
-  if (sc.length) items.push(['r', sc.length, 'altas de más de 3 días sin causa en la columna M', 'Nivel 2 de auditoría: cada desvío necesita su causa (feriado, caída de sistema, ticket CXC…).', "goTab('altas',{altaFiltro:'sincausa'})"]);
-  const rojoSinPlan = pend.filter(b => (b.sem === 'ROJO' || b.sem === 'AMARILLO') && !b.plan);
-  if (pr) items.push(['r', pr, 'bajas pendientes con más de 45 días hábiles', `${rojoSinPlan.length} sin plan de acción · necesitan evidencia para el auditor.`, "goTab('bajas')"]);
-  const sigue = pend.filter(b => b.hlPost > 0);
-  if (sigue.length) items.push(['a', sigue.length, 'PDV con baja pedida que siguen comprando', 'Confirmar si la baja corresponde o anular el pedido.', "goTab('bajas',{bajaVista:'sigue'})"]);
-  const compAct = D.control.filter(c => c.tipo.indexOf('completada pero ACTIVA') >= 0);
-  if (compAct.length) items.push(['a', compAct.length, 'bajas marcadas COMPLETADO en la hoja pero activas en la base', 'Pedir la anulación en el sistema o corregir el status.', "goTab('calidad')"]);
-  const nunca = al.filter(a => a.func === 'NUNCA' && a.activo);
-  if (nunca.length) items.push(['a', nunca.length, 'altas activas que nunca compraron', 'Candidatas a visita del supervisor o a baja.', "goTab('funcionan')"]);
-  const agreg = al.filter(a => !a.enHoja && a.orig !== 'HOJA');
-  if (agreg.length) items.push(['b', agreg.length, 'altas que faltaban en la hoja ALTA', 'El script ya las agregó con su formato.', "goTab('altas',{altaFiltro:'agregadas'})"]);
-  const inex = D.bajas.filter(b => !b.existe);
-  if (inex.length) items.push(['a', inex.length, 'bajas con código inexistente en la base', 'Código mal cargado en el formulario.', "goTab('calidad')"]);
-  if (!items.length) items.push(['g', '✓', 'Todo al día', 'No hay pendientes críticos.', '']);
-  h += `<h2 class="sec">Qué hay que hacer hoy <small>se actualiza con cada corrida del script</small></h2><div class="alerts">` +
-    items.map(i => `<div class="alert ${i[0]}" onclick="${i[4]}"><div class="num">${i[1]}</div><div class="txt"><b>${i[2]}</b><div>${i[3]}</div></div><div class="go">ver →</div></div>`).join('') + '</div>';
-
-  h += `<div class="grid k2" style="margin-top:14px">
-    <div class="card"><h2 class="sec" style="margin-top:0">Altas y bajas por mes</h2>${barsMes()}</div>
-    <div class="card"><h2 class="sec" style="margin-top:0">Días de resolución <small>${S.q === 'ANIO' ? 'año' : S.q}</small></h2>
-      <div class="small muted" style="margin-bottom:4px">ALTAS · días corridos</div>
-      ${histo(altasQ().map(a => a.dias), [0, 1, 2, 3, 7, 14], ['0 días', '1 día', '2 días', '3 días', '4–7 días', '8–14 días', '15+ días'], ['#2F7D4F', '#2F7D4F', '#2F7D4F', '#6BA67F', '#C98300', '#B4321F', '#B4321F'])}
-      <div class="small muted" style="margin:12px 0 4px">BAJAS · días hábiles (completadas y pendientes)</div>
-      ${histo(bajasQ().map(b => b.dh), [15, 30, 45, 90], ['0–15', '16–30', '31–45', '46–90', '+90'], ['#2F7D4F', '#6BA67F', '#C98300', '#B4321F', '#7A1D10'])}
-    </div></div>`;
-
-  // supervisores
-  const spvs = [...new Set(altasQ().map(spvOf).concat(bajasQ().map(spvOf)))].filter(s => s !== 'SIN SUPERVISOR').sort();
-  h += `<h2 class="sec">Por supervisor <small>${S.q === 'ANIO' ? 'año' : S.q}</small></h2><div class="grid k${Math.min(3, Math.max(2, spvs.length))}">` + spvs.map(s => {
-    const x = met(altasQ().filter(a => spvOf(a) === s), bajasQ().filter(b => spvOf(b) === s));
-    const pp = pend.filter(b => spvOf(b) === s);
-    return `<div class="card spvcard"><h3>${esc(s)}</h3>
-      <div class="spvrow"><span>Altas</span><b>${x.altas}</b></div>
-      <div class="spvrow"><span>Altas en ≤3 días</span><b style="color:${colorPct(x.pSla)}">${pctTxt(x.pSla)}</b></div>
-      <div class="spvrow"><span>Altas que funcionan</span><b style="color:${colorPct(x.pFunc, 80, 65)}">${pctTxt(x.pFunc)}</b></div>
-      <div class="spvrow"><span>Bajas completadas en ≤45 hábiles</span><b style="color:${colorPct(x.pBsla)}">${pctTxt(x.pBsla)}</b></div>
-      <div class="spvrow"><span>Bajas pendientes hoy</span><b>${pp.length} <span class="pill p-r">${pp.filter(b => b.sem === 'ROJO').length} rojo</span></b></div>
-      <div style="margin-top:8px"><button class="btn" onclick="goTab('equipo',{spv:'${esc(s)}'})">Ver promotores →</button></div></div>`;
+  h += `<div class="grid g21" style="margin-top:14px">
+    <div class="card"><h3>Mapa de Mendoza · dónde se dan altas y bajas <small>${qTxt()}</small></h3>
+      <div class="maptools">
+        ${[['ambas', 'Altas y bajas'], ['altas', 'Solo altas'], ['bajas', 'Solo bajas']].map(([k, l]) => `<span class="chip ${S.mapModo === k ? 'on' : ''}" onclick="S.mapModo='${k}';render()">${l}</span>`).join('')}
+        <span style="width:10px"></span>
+        ${[['loc', 'Por localidad'], ['pdv', 'Cada PDV']].map(([k, l]) => `<span class="chip ${S.mapVista === k ? 'on' : ''}" onclick="S.mapVista='${k}';render()">${l}</span>`).join('')}
+        <span class="legend" style="margin:0 0 0 auto"><span><i class="dot" style="background:${COL.alta}"></i>Altas</span><span><i class="dot" style="background:${COL.baja}"></i>Bajas</span></span>
+      </div>
+      <div id="map"></div></div>
+    <div class="card"><h3>Localidades <small>clic para ubicar en el mapa</small></h3><div id="locs" style="max-height:470px;overflow:auto">${listaLocalidades(al, bj)}</div></div>
+  </div>`;
+  h += `<div class="grid g3" style="margin-top:14px">
+    <div class="card"><h3>Altas y bajas por mes <small>${D.cfg.anio}</small></h3><div class="chartbox"><canvas id="chMes"></canvas></div></div>
+    <div class="card"><h3>¿Las altas compraron? <small>${qTxt()} · clic para ver</small></h3><div class="chartbox"><canvas id="chFunc"></canvas></div></div>
+    <div class="card"><h3>Estado de las bajas <small>${qTxt()}</small></h3><div class="chartbox"><canvas id="chBaj"></canvas></div></div>
+  </div>`;
+  const spvs = [...new Set(al.map(spvOf).concat(bj.map(spvOf)))].filter(s => s !== 'SIN SUPERVISOR').sort();
+  h += `<div class="grid g2" style="margin-top:14px">` + spvs.map(s => {
+    const x = met(al.filter(a => spvOf(a) === s), bj.filter(b => spvOf(b) === s)), pp = pend.filter(b => spvOf(b) === s);
+    const top = Object.entries(al.filter(a => spvOf(a) === s).reduce((o, a) => (o[a.prom] = (o[a.prom] || 0) + 1, o), {})).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    return `<div class="card"><div class="spv">${avatar(s, true)}<div style="flex:1"><div class="small muted">Supervisor</div><h4>${esc(s)}</h4></div><button class="btn" onclick="goTab('equipo',{spv:'${esc(s)}'})">Ver equipo →</button></div>
+      <div class="spv st"><div><b>${x.altas}</b><span>altas</span></div><div><b style="color:${colorPct(x.pSla)}">${pctTxt(x.pSla)}</b><span>altas ≤3 días</span></div><div><b>${x.comp}</b><span>bajas compl.</span></div><div><b style="color:${pp.filter(b => b.sem === 'ROJO').length ? COL.crit : COL.good}">${pp.length}</b><span>bajas pend.</span></div></div>
+      <div class="small muted" style="margin:10px 0 4px">Promotores con más altas</div><div style="display:flex;gap:12px;flex-wrap:wrap">${top.map(([p, n]) => `<span class="who small" style="cursor:pointer" onclick="goTab('altas',{spv:'${esc(s)}',prom:'${esc(p)}',altaFiltro:'todas'})">${avatar(p)}${esc(p.replace(/^\d+--/, ''))} <b>${n}</b></span>`).join('')}</div></div>`;
   }).join('') + '</div>';
+  const P = [];
+  const pendV = D.altasPend.filter(p => !p.existe && p.dias > D.cfg.slaAlta).length; if (pendV) P.push(['⏳', pendV, 'altas sin cargar en la base', "goTab('altas',{altaFiltro:'pend'})"]);
+  const sc = altasAnio().filter(a => !a.sla && !a.obs).length; if (sc) P.push(['✎', sc, 'altas +3 días sin causa', "goTab('altas',{altaFiltro:'sincausa'})"]);
+  if (pr) P.push(['⛔', pr, 'bajas +45 hábiles', "goTab('alertas')"]);
+  const sp = pend.filter(b => b.sem !== 'VERDE' && !b.plan).length; if (sp) P.push(['📝', sp, 'bajas sin plan de acción', "goTab('alertas')"]);
+  const sig = pend.filter(b => b.hlPost > 0).length; if (sig) P.push(['🛒', sig, 'bajas que siguen comprando', "goTab('alertas',{alertaVista:'sigue'})"]);
+  const nun = altasAnio().filter(a => a.func === 'NUNCA' && a.activo !== false).length; if (nun) P.push(['∅', nun, 'altas que nunca compraron', "goTab('compraron',{etapa:'NUNCA'})"]);
+  h += `<div class="sec">Pendientes <small>clic para ver el detalle</small></div><div class="pend">${P.map(p => `<button onclick="${p[3]}"><span>${p[0]}</span><b>${p[1]}</b>${p[2]}</button>`).join('') || '<span class="muted">Nada pendiente 🎉</span>'}</div>`;
+  setTimeout(() => {
+    chart('chMes', { type: 'bar', data: { labels: MES.slice(0, last), datasets: [{ label: 'Altas', data: A.slice(0, last), backgroundColor: COL.alta, borderRadius: 4, maxBarThickness: 16 }, { label: 'Bajas completadas', data: B.slice(0, last), backgroundColor: COL.baja, borderRadius: 4, maxBarThickness: 16 }] }, options: baseOpts() });
+    chart('chFunc', { type: 'doughnut', data: { labels: ['Compraron ≤30 días', 'Compraron después', 'Nunca compraron', 'En observación'], datasets: [{ data: [m.func, m.tard, m.nunca, m.obs], backgroundColor: [COL.alta, COL.violet, COL.baja, COL.gris], borderColor: '#fff', borderWidth: 2 }] },
+      options: baseOpts({ cutout: '64%', scales: {}, onClick: (e, el) => { if (el.length) goTab('compraron', { etapa: ['FUNCIONA', 'TARDIA', 'NUNCA', 'OBSERVACION'][el[0].index] }); } }) });
+    chart('chBaj', { type: 'doughnut', data: { labels: ['Completadas ≤45 hábiles', 'Completadas fuera de SLA', 'Pendientes'], datasets: [{ data: [m.bsla, m.comp - m.bsla, m.pend], backgroundColor: [COL.good, COL.crit, COL.warn], borderColor: '#fff', borderWidth: 2 }] },
+      options: baseOpts({ cutout: '64%', scales: {}, onClick: () => goTab('alertas') }) });
+    dibujarMapa(al, bj);
+  }, 0);
   return h;
 }
+function porLocalidad(al, bj) {
+  const g = {};
+  const add = (x, t) => { const k = x.loc || 'SIN LOCALIDAD'; g[k] = g[k] || { k, a: 0, b: 0, lat: 0, lng: 0, n: 0, dep: x.dep || '' }; g[k][t]++; if (x.lat) { g[k].lat += x.lat; g[k].lng += x.lng; g[k].n++; } };
+  if (S.mapModo !== 'bajas') al.forEach(x => add(x, 'a'));
+  if (S.mapModo !== 'altas') bj.forEach(x => add(x, 'b'));
+  return Object.values(g).map(x => (x.lat = x.n ? x.lat / x.n : null, x.lng = x.n ? x.lng / x.n : null, x)).sort((p, q) => (q.a + q.b) - (p.a + p.b));
+}
+function listaLocalidades(al, bj) {
+  const L = porLocalidad(al, bj), mx = Math.max(1, ...L.map(x => x.a + x.b));
+  return `<div class="loc muted small" style="cursor:default"><span>Localidad</span><span class="n" style="color:${COL.alta}">Altas</span><span class="n" style="color:${COL.baja}">Bajas</span></div>` +
+    L.map(x => `<div class="loc" onclick="zoomLoc('${esc(x.k)}')"><span>${esc(x.k)}<span class="muted small"> · ${esc(x.dep)}</span></span><span class="n">${x.a || ''}</span><span class="n">${x.b || ''}</span>
+      <span class="b2"><i style="width:${x.a / mx * 100}%;background:${COL.alta}"></i><i style="width:${x.b / mx * 100}%;background:${COL.baja}"></i></span></div>`).join('');
+}
+function dibujarMapa(al, bj) {
+  if (MAP) { MAP.remove(); MAP = null; }
+  const el = document.getElementById('map'); if (!el) return;
+  if (!window.L) { el.innerHTML = '<div class="empty">No se pudo cargar el mapa (sin conexión a internet).</div>'; return; }
+  MAP = L.map(el, { scrollWheelZoom: false }).setView([-32.95, -68.72], 11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 18, attribution: '© OpenStreetMap · © CARTO' }).addTo(MAP);
+  const pts = [];
+  if (S.mapVista === 'pdv') {
+    const add = (x, t) => { if (!x.lat) return; pts.push([x.lat, x.lng]);
+      L.circleMarker([x.lat, x.lng], { radius: 5, color: '#fff', weight: 1.5, fillColor: t === 'a' ? COL.alta : COL.baja, fillOpacity: .9 }).addTo(MAP)
+        .bindPopup(`<b>${t === 'a' ? 'Alta' : 'Baja'} · ${esc(x.c)}</b><br>${esc(x.rs)}<br>${esc(x.loc)}<br>${esc((x.prom || '').replace(/^\d+--/, ''))} · ${fd(t === 'a' ? x.ff : x.fi)}${t === 'b' ? '<br>' + esc(x.estado) + ' · ' + x.dh + ' hábiles' : ''}`); };
+    if (S.mapModo !== 'bajas') al.forEach(x => add(x, 'a'));
+    if (S.mapModo !== 'altas') bj.forEach(x => add(x, 'b'));
+  } else {
+    const Lc = porLocalidad(al, bj).filter(x => x.lat), mx = Math.max(1, ...Lc.map(x => Math.max(x.a, x.b)));
+    Lc.forEach(x => {
+      pts.push([x.lat, x.lng]);
+      const off = x.a && x.b ? 0.006 : 0, tip = `<b>${esc(x.k)}</b><br>${x.a} altas · ${x.b} bajas`;
+      if (x.a) L.circleMarker([x.lat, x.lng - off], { radius: 5 + 15 * Math.sqrt(x.a / mx), color: '#fff', weight: 2, fillColor: COL.alta, fillOpacity: .78 }).addTo(MAP).bindTooltip(tip);
+      if (x.b) L.circleMarker([x.lat, x.lng + off], { radius: 5 + 15 * Math.sqrt(x.b / mx), color: '#fff', weight: 2, fillColor: COL.baja, fillOpacity: .78 }).addTo(MAP).bindTooltip(tip);
+    });
+  }
+  if (pts.length) MAP.fitBounds(pts, { padding: [24, 24], maxZoom: 13 });
+}
+function zoomLoc(k) { const x = porLocalidad(altasQ(), bajasQ()).find(v => v.k === k); if (MAP && x && x.lat) MAP.setView([x.lat, x.lng], 14); }
 
-/* ---------------- ALTAS ---------------- */
+/* ---------- ALTAS ---------- */
 function selSpvProm(lista) {
   const spvs = [...new Set(lista.map(spvOf))].sort();
   const proms = [...new Set(lista.filter(a => !S.spv || spvOf(a) === S.spv).map(a => a.prom).filter(Boolean))].sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999));
   return `<select onchange="S.spv=this.value;S.prom='';render()"><option value="">Todos los supervisores</option>${spvs.map(s => `<option ${S.spv === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
     <select onchange="S.prom=this.value;render()"><option value="">Todos los promotores</option>${proms.map(p => `<option ${S.prom === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
-    <input placeholder="Buscar código, razón social…" value="${esc(S.txt)}" oninput="S.txt=this.value;clearTimeout(window._t);window._t=setTimeout(render,250)">`;
+    <input placeholder="Buscar código, razón social…" value="${esc(S.txt)}" oninput="S.txt=this.value;clearTimeout(window._t);window._t=setTimeout(render,300)">`;
 }
 function filtroComun(x) {
   if (S.spv && spvOf(x) !== S.spv) return false;
   if (S.prom && x.prom !== S.prom) return false;
-  if (S.txt) { const t = S.txt.toUpperCase(); if (!((x.c || '') + ' ' + (x.rs || '') + ' ' + (x.prom || '') + ' ' + (x.id || '')).toUpperCase().includes(t)) return false; }
+  if (S.txt) { const t = S.txt.toUpperCase(); if (!((x.c || '') + ' ' + (x.rs || '') + ' ' + (x.prom || '') + ' ' + (x.loc || '')).toUpperCase().includes(t)) return false; }
   return true;
 }
 function vAltas() {
   const base = altasQ();
-  const F = {
-    todas: ['Todas', a => true], fuera: ['+3 días', a => !a.sla], sincausa: ['+3 días sin causa', a => !a.sla && !a.obs],
-    nofunc: ['No funcionan', a => a.func === 'NUNCA' || a.func === 'TARDIA'], agregadas: ['Agregadas por el script', a => !a.enHoja && a.orig !== 'HOJA'],
-    subcanal: ['Subcanal ≠ árbol', a => a.subOk === false], pend: ['Pendientes en base', null]
-  };
-  const pendL = D.altasPend.filter(p => filtroComun({ ...p, prom: '', spv: '' }) || !S.spv);
-  let h = `<div class="chips">` + Object.entries(F).map(([k, [l, f]]) => `<span class="chip ${S.altaFiltro === k ? 'on' : ''}" onclick="S.altaFiltro='${k}';render()">${l}<span class="c">${f ? base.filter(f).length : pendL.length}</span></span>`).join('') + `</div>`;
+  const F = { todas: ['Todas', a => true], fuera: ['+3 días', a => !a.sla], sincausa: ['+3 días sin causa', a => !a.sla && !a.obs], agregadas: ['Agregadas por el script', a => !a.enHoja && a.orig !== 'HOJA'], subcanal: ['Subcanal ≠ árbol', a => a.subOk === false], pend: ['Pendientes en base', null] };
+  const m = met(base.filter(filtroComun), []);
+  let h = `<div class="grid g4">
+    ${tile('Altas', nf(m.altas), `prom. ${nf(m.prom, 1)} días`, '', "S.altaFiltro='todas';render()")}
+    ${tile('En ≤ 3 días', pctTxt(m.pSla), `${m.sla} de ${m.altas}`, ring(m.pSla, colorPct(m.pSla)), '')}
+    ${tile('Fuera de SLA', nf(m.fuera), `${m.conCausa} con causa en col. M`, '', "S.altaFiltro='fuera';render()")}
+    ${tile('Sin cargar en base', nf(D.altasPend.length), 'pedidas en el formulario', '', "S.altaFiltro='pend';render()")}
+  </div>`;
+  h += `<div class="chips" style="margin-top:14px">` + Object.entries(F).map(([k, [l, f]]) => `<span class="chip ${S.altaFiltro === k ? 'on' : ''}" onclick="S.altaFiltro='${k}';render()">${l}<span class="c">${f ? base.filter(f).length : D.altasPend.length}</span></span>`).join('') + `</div>`;
   h += `<div class="filters">${selSpvProm(base)}<button class="btn" onclick="csvAltas()">⬇ CSV</button></div>`;
   if (S.altaFiltro === 'pend') {
-    h += `<div class="note" style="margin-bottom:10px">Altas cargadas en el formulario que <b>no encuentro en BASE CLIENTES</b> (ni por CUIT/DNI ni por nombre). El reloj de 3 días sigue corriendo. Si figura "CUIT ya existe", el cliente estaba dado de alta antes (posible reactivación).</div>`;
-    h += tabla(['Pedido', 'Días', 'Promotor', 'Razón social', 'Fantasía', 'CUIT/DNI', 'Localidad', 'Situación'],
-      D.altasPend.filter(p => !S.txt || (p.rs + p.id + p.quien).toUpperCase().includes(S.txt.toUpperCase())).sort((a, b) => b.dias - a.dias).map(p => [fd(p.f), `<span class="pill ${p.dias > 3 ? 'p-r' : 'p-a'}">${p.dias} d</span>`, esc(p.quien), esc(p.rs), esc(p.fant), `<span class="code">${esc(p.id)}</span>`, esc(p.loc),
-        p.existe ? `<span class="pill p-b">CUIT ya existe: ${esc(p.cands.join(', '))}</span>` : (p.cargas > 1 ? `<span class="pill p-n">${p.cargas} cargas</span>` : '')]));
-    return h;
+    h += `<div class="note" style="margin-bottom:10px">Altas del formulario que <b>no aparecen en BASE CLIENTES</b> (ni por CUIT/DNI ni por nombre). El reloj de 3 días sigue corriendo.</div>`;
+    return h + tabla(['Pedido', 'Días', 'Promotor', 'Razón social', 'Fantasía', 'CUIT/DNI', 'Localidad', 'Situación'],
+      D.altasPend.filter(p => !S.txt || (p.rs + p.id + p.quien).toUpperCase().includes(S.txt.toUpperCase())).sort((a, b) => b.dias - a.dias).map(p => [fd(p.f), `<span class="pill ${p.dias > 3 ? 'p-c' : 'p-w'}">${p.dias} d</span>`, who(p.quien), esc(p.rs), esc(p.fant), `<span class="code">${esc(p.id)}</span>`, esc(p.loc),
+        p.existe ? `<span class="pill p-v">CUIT ya existe: ${esc(p.cands.join(', '))}</span>` : (p.cargas > 1 ? `<span class="pill p-n">${p.cargas} cargas</span>` : '')]));
   }
   const L = base.filter(F[S.altaFiltro][1]).filter(filtroComun);
   if (S.altaFiltro === 'fuera' || S.altaFiltro === 'sincausa') {
-    const causas = {}; base.filter(a => !a.sla).filter(filtroComun).forEach(a => { const c = causaDe(a); causas[c] = (causas[c] || 0) + 1; });
-    const porProm = {}; base.filter(a => !a.sla).filter(filtroComun).forEach(a => { porProm[a.prom || '—'] = (porProm[a.prom || '—'] || 0) + 1; });
-    h += `<div class="grid k2" style="margin-bottom:14px"><div class="card"><h2 class="sec" style="margin-top:0">Análisis de causas <small>altas de más de 3 días</small></h2>
-      ${hbars(causas, k => k.startsWith('Sugerida') || k === 'Sin causa' ? '#C98300' : '#2A5CAA')}
-      <div class="small muted" style="margin-top:8px">Azul = causa cargada en la columna M · Ámbar = causa sugerida por el script (falta confirmarla en M).</div></div>
-      <div class="card"><h2 class="sec" style="margin-top:0">¿Quién demora? <small>altas +3 días por promotor</small></h2>${hbars(porProm, '#B4321F', k => `S.prom='${esc(k)}';render()`)}</div></div>`;
+    h += `<div class="grid g2" style="margin-bottom:14px"><div class="card"><h3>Causas de las altas +3 días</h3><div class="chartbox sm"><canvas id="chCausa"></canvas></div><div class="small muted" style="margin-top:6px">Las "Sugerida" las propone el script: confirmalas en la columna M.</div></div>
+      <div class="card"><h3>¿Quién demora? <small>altas +3 días por promotor</small></h3>${rankList(Object.entries(base.filter(a => !a.sla).filter(filtroComun).reduce((o, a) => (o[a.prom || '—'] = (o[a.prom || '—'] || 0) + 1, o), {})).map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v).slice(0, 8), COL.crit, k => `S.prom='${esc(k)}';render()`)}</div></div>`;
+    const cz = {}; base.filter(a => !a.sla).filter(filtroComun).forEach(a => { const c = causaDe(a); cz[c] = (cz[c] || 0) + 1; });
+    const e = Object.entries(cz).sort((a, b) => b[1] - a[1]);
+    setTimeout(() => chart('chCausa', { type: 'bar', data: { labels: e.map(x => x[0]), datasets: [{ label: 'Altas', data: e.map(x => x[1]), backgroundColor: e.map(x => /^Sugerida|^Sin causa/.test(x[0]) ? COL.warn : COL.alta), borderRadius: 4, maxBarThickness: 18 }] }, options: baseOpts({ indexAxis: 'y', plugins: { legend: { display: false } } }) }), 0);
   }
-  h += tabla(['Código', 'Razón social', 'Promotor', 'Subcanal', 'Pedido', 'Alta', 'Días', 'Causa (col. M)', 'Funciona', 'HL 1er mes', ''],
+  return h + tabla(['Código', 'Razón social', 'Promotor', 'Localidad', 'Subcanal', 'Pedido', 'Alta', 'Días', 'Causa (col. M)', '¿Compró?', ''],
     L.sort((a, b) => (b.dias - a.dias) || (b.ff > a.ff ? 1 : -1)).map(a => [
-      `<span class="code">${esc(a.c)}</span>`, esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : ''), esc(a.prom), esc(a.sub) + (a.subOk === false ? ` <span class="pill p-a" title="Árbol del formulario: ${esc(a.arbol)}">≠ árbol</span>` : ''),
-      fd(a.fi) + (a.cargas > 1 ? ` <span class="pill p-n">${a.cargas}×</span>` : ''), fd(a.ff),
-      `<span class="pill ${a.sla ? 'p-g' : 'p-r'}">${a.dias} d</span>`, a.sla ? '' : (a.obs ? esc(a.obs) : `<span class="pill p-a">sugerida: ${esc(a.sug)}</span>`),
-      `<span class="pill ${FUNC[a.func][1]}">${FUNC[a.func][0]}</span>`, { v: nf((a.hl0 || 0) + (a.hl1 || 0), 2), n: 1 },
-      a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank" title="Abrir fila en la hoja ALTA">fila ${a.fila}</a>` : (a.enHoja ? '' : '<span class="pill p-b">nueva</span>')
+      `<span class="code">${esc(a.c)}</span>`, { v: esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : ''), cls: 'w' }, who(a.prom), esc(a.loc), esc(a.sub) + (a.subOk === false ? ` <span class="pill p-w" title="Árbol: ${esc(a.arbol)}">≠ árbol</span>` : ''),
+      fd(a.fi) + (a.cargas > 1 ? ` <span class="pill p-n">${a.cargas}×</span>` : ''), fd(a.ff), `<span class="pill ${a.sla ? 'p-g' : 'p-c'}">${a.dias} d</span>`,
+      a.sla ? '' : (a.obs ? esc(a.obs) : `<span class="pill p-w">sugerida: ${esc(a.sug)}</span>`), `<span class="pill ${ETAPA[a.func][2]}">${ETAPA[a.func][0]}</span>`,
+      a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank">fila ${a.fila}</a>` : ''
     ]));
-  return h;
-}
-function tabla(cols, rows) {
-  if (!rows.length) return '<div class="card empty">No hay casos con este filtro.</div>';
-  return `<div class="tbl-wrap"><table><thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>` +
-    rows.map(r => '<tr>' + r.map(c => (c && typeof c === 'object') ? `<td class="num">${c.v}</td>` : `<td>${c == null ? '' : c}</td>`).join('') + '</tr>').join('') + '</tbody></table></div>' +
-    `<div class="small muted" style="margin-top:6px">${rows.length} filas</div>`;
 }
 
-/* ---------------- BAJAS ---------------- */
-function vBajas() {
-  const pend = pendientes().filter(b => !S.bajaSpv || spvOf(b) === S.bajaSpv).filter(filtroComunB);
-  const spvs = [...new Set(bajasOk().map(spvOf))].sort();
-  let h = `<div class="filters"><select onchange="S.bajaSpv=this.value;render()"><option value="">Todos los supervisores</option>${spvs.map(s => `<option ${S.bajaSpv === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
-    <input placeholder="Buscar código o razón social…" value="${esc(S.txt)}" oninput="S.txt=this.value;clearTimeout(window._t);window._t=setTimeout(render,250)">
-    <span class="chip ${S.bajaVista === 'sigue' ? 'on' : ''}" onclick="S.bajaVista=S.bajaVista==='sigue'?'':'sigue';render()">Siguen comprando<span class="c">${pendientes().filter(b => b.hlPost > 0).length}</span></span>
-    <button class="btn" onclick="csvBajas()">⬇ CSV</button></div>`;
-  const P = S.bajaVista === 'sigue' ? pend.filter(b => b.hlPost > 0) : pend;
-  h += `<h2 class="sec" style="margin-top:4px">Semáforo de bajas pendientes <small>hoy · 45 días hábiles desde el 1er pedido, el reloj no se detiene</small></h2>`;
-  const col = (cls, tit, arr) => `<div class="col ${cls}"><h3>${tit}<span>${arr.length}</span></h3>${arr.sort((a, b) => b.dh - a.dh).map(cardBaja).join('') || '<div class="empty">—</div>'}</div>`;
-  h += `<div class="board">${col('r', '🔴 +45 hábiles', P.filter(b => b.sem === 'ROJO'))}${col('a', '🟡 31 a 45', P.filter(b => b.sem === 'AMARILLO'))}${col('g', '🟢 0 a 30', P.filter(b => b.sem === 'VERDE'))}</div>`;
-  const comp = bajasQ().filter(b => b.estado === 'COMPLETADO').filter(b => !S.bajaSpv || spvOf(b) === S.bajaSpv).filter(filtroComunB);
-  const m = met([], comp);
-  h += `<h2 class="sec">Bajas completadas <small>${S.q === 'ANIO' ? 'año' : S.q} · ${m.comp} bajas · <b style="color:${colorPct(m.pBsla)}">${pctTxt(m.pBsla)}</b> en ≤45 hábiles</small></h2>`;
-  h += tabla(['Código', 'Razón social', 'Supervisor', 'Promotor', 'Motivo', 'Pedido', 'Anulación', 'Hábiles', 'SLA', 'Plan / comentario', ''],
-    comp.sort((a, b) => b.dh - a.dh).map(b => [`<span class="code">${esc(b.c)}</span>`, esc(b.rs), esc(b.spv), esc(b.prom), `<span class="small">${esc(b.mot)}</span>`, fd(b.fi) + (b.arrastre ? ' <span class="pill p-n">arrastre</span>' : ''), fd(b.ff),
-      { v: b.dh }, `<span class="pill ${SEM[b.sem][1]}">${SEM[b.sem][0]}</span>`, `<span class="small">${esc(b.plan || b.com || '')}</span>`, b.fila ? `<a href="${sheetLink(D.cfg.gidBaja, b.fila)}" target="_blank">fila ${b.fila}</a>` : '']));
+/* ---------- ALTAS QUE COMPRARON ---------- */
+function vCompraron() {
+  const al = altasQ().filter(filtroComun), m = met(al, []);
+  const ev = m.altas - m.obs || 1;
+  const etapas = [['TODAS', 'Altas realizadas', m.altas, '#13294B', ''], ['FUNCIONA', ETAPA.FUNCIONA[0], m.func, COL.alta, pctTxt(pct(m.func, ev)) + ' de las evaluables'], ['TARDIA', ETAPA.TARDIA[0], m.tard, COL.violet, pctTxt(pct(m.tard, ev))], ['NUNCA', ETAPA.NUNCA[0], m.nunca, COL.baja, pctTxt(pct(m.nunca, ev))], ['OBSERVACION', ETAPA.OBSERVACION[0], m.obs, COL.gris, 'todavía no se evalúan']];
+  const hlTot = al.reduce((s, a) => s + (a.hlTot || 0), 0), compr = al.filter(a => a.func === 'FUNCIONA' || a.func === 'TARDIA').length;
+  let h = `<div class="filters">${selSpvProm(altasQ())}</div>
+  <div class="grid g12">
+    <div class="card"><h3>Embudo de altas <small>clic en una etapa para ver esos clientes</small></h3><div class="funnel">` +
+    etapas.map(([k, l, v, c, s]) => `<div class="fst ${S.etapa === k ? 'on' : ''}" onclick="S.etapa='${k}';S.mesSel='';render()"><div class="lbl"><b>${l}</b><span>${s}</span></div><div><div class="shape" style="width:${Math.max(8, v / (m.altas || 1) * 100)}%;background:${c}">${v}</div></div><div class="v">${v}</div></div>`).join('') +
+    `</div><div class="grid g2" style="margin-top:12px"><div class="note"><b style="font-size:16px">${nf(hlTot, 1)} HL</b><br>comprados por estas altas desde su alta</div><div class="note"><b style="font-size:16px">${nf(compr ? hlTot / compr : 0, 2)} HL</b><br>promedio por alta que compró</div></div>
+    <div class="small muted" style="margin-top:8px">"Compraron en ≤30 días" = compra en el mes del alta o el siguiente (VENTA es mensual). Último mes cargado: ${esc(D.cfg.ultimoMesVenta)}.</div></div>
+    <div class="card"><h3>Altas por mes y si compraron <small>clic en una barra para filtrar</small></h3><div class="chartbox" style="height:320px"><canvas id="chCoh"></canvas></div></div>
+  </div>`;
+  const g = {}; al.forEach(a => { const k = a.prom || '—'; g[k] = g[k] || { t: 0, f: 0, o: 0, n: 0, hl: 0 }; g[k].t++; if (a.func === 'FUNCIONA') g[k].f++; if (a.func === 'OBSERVACION') g[k].o++; if (a.func === 'NUNCA') g[k].n++; g[k].hl += a.hlTot || 0; });
+  const rk = Object.entries(g).filter(([k, v]) => v.t - v.o > 0).map(([k, v]) => ({ k, v: pct(v.f, v.t - v.o), lbl: pctTxt(pct(v.f, v.t - v.o)), sub: `${v.f} de ${v.t - v.o} · ${v.n} nunca` })).sort((a, b) => b.v - a.v);
+  h += `<div class="grid g2" style="margin-top:14px"><div class="card"><h3>% de altas que compraron por promotor</h3>${rankList(rk, COL.alta, k => `S.prom='${esc(k)}';render()`)}</div>
+    <div class="card"><h3>HL comprados por las altas, por promotor</h3>${rankList(Object.entries(g).map(([k, v]) => ({ k, v: v.hl, lbl: nf(v.hl, 1) })).sort((a, b) => b.v - a.v), COL.violet, k => `S.prom='${esc(k)}';render()`)}</div></div>`;
+  let L = al.filter(a => S.etapa === 'TODAS' || a.func === S.etapa);
+  if (S.mesSel !== '') L = L.filter(a => +a.ff.slice(5, 7) - 1 === +S.mesSel);
+  const tit = (S.etapa === 'TODAS' ? 'Todas las altas' : ETAPA[S.etapa][0]) + (S.mesSel !== '' ? ' · ' + MES[+S.mesSel] : '');
+  h += `<div class="sec">${tit} <small>${L.length} clientes${S.etapa !== 'TODAS' || S.mesSel !== '' ? ` · <a href="#" onclick="S.etapa='TODAS';S.mesSel='';render();return false">ver todas</a>` : ''}</small></div>`;
+  h += tabla(['Código', 'Razón social', 'Promotor', 'Localidad', 'Subcanal', 'Alta', 'Días desde el alta', 'HL mes alta', 'HL mes sig.', 'HL total', 'Estado', ''],
+    L.sort((a, b) => a.ff > b.ff ? 1 : -1).map(a => [`<span class="code">${esc(a.c)}</span>`, { v: esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : ''), cls: 'w' }, who(a.prom), esc(a.loc), esc(a.sub), fd(a.ff),
+      { v: Math.round((new Date(D.hoy) - new Date(a.ff)) / 864e5) }, { v: nf(a.hl0, 2) }, { v: nf(a.hl1, 2) }, { v: nf(a.hlTot, 2) }, `<span class="pill ${ETAPA[a.func][2]}">${ETAPA[a.func][0]}</span>`,
+      a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank">fila ${a.fila}</a>` : '']));
+  setTimeout(() => {
+    const ks = ['FUNCIONA', 'TARDIA', 'NUNCA', 'OBSERVACION'], last = Math.max(0, ...al.map(a => +a.ff.slice(5, 7))) || 9;
+    const ds = ks.map(k => ({ label: ETAPA[k][0], data: MES.slice(0, last).map((_, i) => al.filter(a => a.func === k && +a.ff.slice(5, 7) - 1 === i).length), backgroundColor: ETAPA[k][1], borderRadius: 3, maxBarThickness: 26, borderColor: '#fff', borderWidth: { top: 2 } }));
+    chart('chCoh', { type: 'bar', data: { labels: MES.slice(0, last), datasets: ds }, options: baseOpts({ scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, grid: { color: '#EEF2F6' } } },
+      onClick: (e, el) => { if (el.length) { S.etapa = ks[el[0].datasetIndex]; S.mesSel = String(el[0].index); render(); } } }) });
+  }, 0);
   return h;
 }
-function filtroComunB(b) { if (!S.txt) return true; return ((b.c || '') + ' ' + (b.rs || '') + ' ' + (b.prom || '')).toUpperCase().includes(S.txt.toUpperCase()); }
+
+/* ---------- BAJAS · HOJA COMPLETA ---------- */
+function vHoja() {
+  const HB = D.hojaBaja;
+  if (!HB) return '<div class="card empty">Todavía no llegó la hoja BAJA al tablero. Corré "Publicar solo los datos" con el script nuevo.</div>';
+  const H = HB.hdr, nh = H.map(x => x.toUpperCase());
+  const ci = n => nh.findIndex(x => x.indexOf(n) === 0);
+  const cSt = ci('STATUS'), cSpv = ci('SUPERVISOR'), cProm = ci('PROMOTOR'), cRs = ci('RAZON SOCIAL'), cCod = HB.cod;
+  const [a0, a1] = HB.activos;
+  const porCod = {}; D.bajas.forEach(b => porCod[b.c] = b);
+  const code = r => String(r.v[cCod]).replace(/\D/g, '').replace(/^0+/, '');
+  const num = v => parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0;
+  const R = HB.rows.filter(r => {
+    if (S.hbStatus && String(r.v[cSt]).toUpperCase() !== S.hbStatus) return false;
+    if (S.spv && String(r.v[cSpv]).toUpperCase() !== S.spv) return false;
+    if (S.prom && String(r.v[cProm]).toUpperCase() !== S.prom) return false;
+    if (S.hbAct && !r.v.slice(a0, a1 + 1).some(v => num(v) > 0)) return false;
+    if (S.txt && !r.v.join(' ').toUpperCase().includes(S.txt.toUpperCase())) return false;
+    return true;
+  });
+  const sts = [...new Set(HB.rows.map(r => String(r.v[cSt]).toUpperCase()).filter(Boolean))];
+  const spvs = [...new Set(HB.rows.map(r => String(r.v[cSpv]).toUpperCase()).filter(Boolean))].sort();
+  const proms = [...new Set(HB.rows.filter(r => !S.spv || String(r.v[cSpv]).toUpperCase() === S.spv).map(r => String(r.v[cProm]).toUpperCase()).filter(Boolean))].sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999));
+  const tot = H.slice(a0, a1 + 1).map((n, i) => ({ n, v: R.reduce((s, r) => s + num(r.v[a0 + i]), 0) }));
+  let h = `<div class="note" style="margin-bottom:10px">Es la hoja <b>BAJA</b> del Sheet tal cual, con todas sus columnas y los activos fijos. Para cargar plan de acción, OK supervisor, comentarios o evidencia, usá el link "fila" (abre el Sheet en esa fila).</div>`;
+  h += `<div class="filters"><select onchange="S.hbStatus=this.value;render()"><option value="">Todos los status</option>${sts.map(s => `<option ${S.hbStatus === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+    <select onchange="S.spv=this.value;S.prom='';render()"><option value="">Todos los supervisores</option>${spvs.map(s => `<option ${S.spv === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+    <select onchange="S.prom=this.value;render()"><option value="">Todos los promotores</option>${proms.map(s => `<option ${S.prom === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+    <input placeholder="Buscar en toda la hoja…" value="${esc(S.txt)}" oninput="S.txt=this.value;clearTimeout(window._t);window._t=setTimeout(render,300)">
+    <span class="chip ${S.hbAct ? 'on' : ''}" onclick="S.hbAct=!S.hbAct;render()">Solo con activos fijos</span>
+    <button class="btn" onclick="csvHoja()">⬇ CSV</button></div>`;
+  h += `<div class="acts" style="margin-bottom:12px"><div><b>${R.length}</b><span>filas</span></div>${tot.filter(t => t.v > 0).map(t => `<div><b>${nf(t.v)}</b><span>${esc(t.n)}</span></div>`).join('')}</div>`;
+  const cols = ['Semáforo'].concat(H).concat(['Evidencia', '']);
+  h += `<div class="tbl-wrap" style="max-height:640px"><table class="hb"><thead><tr>${cols.map((c, i) => { const j = i - 1; return `<th class="${j >= a0 && j <= a1 ? 'act' : j === cCod ? 'sticky' : ''}">${esc(c)}</th>`; }).join('')}</tr></thead><tbody>` +
+    R.map(r => { const b = porCod[code(r)];
+      return '<tr>' + `<td>${b && SEM[b.sem] ? `<span class="pill ${SEM[b.sem][1]}">${SEM[b.sem][0]}</span>` : ''}</td>` + r.v.map((v, j) => {
+        if (j >= a0 && j <= a1) return `<td class="act">${num(v) > 0 ? `<b>${esc(v)}</b>` : '<span class="muted">·</span>'}</td>`;
+        if (j === cSt) { const s = String(v).toUpperCase(); return `<td><span class="pill ${s === 'COMPLETADO' ? 'p-g' : s === 'EN PROCESO' ? 'p-w' : 'p-n'}">${esc(v)}</span></td>`; }
+        if (j === cCod) return `<td class="sticky code">${esc(v)}</td>`;
+        if (j === cSpv || j === cProm) return `<td>${who(v)}</td>`;
+        if (String(v).toUpperCase() === 'TRUE') return '<td>✅</td>'; if (String(v).toUpperCase() === 'FALSE') return '<td>☐</td>';
+        return `<td class="${String(v).length > 30 ? 'w' : ''}">${esc(v)}</td>`;
+      }).join('') + `<td>${r.e ? `<a href="${esc(r.e)}" target="_blank">📎 ver</a>` : ''}</td><td><a href="${sheetLink(D.cfg.gidBaja, r.f)}" target="_blank">fila ${r.f} ↗</a></td></tr>`;
+    }).join('') + '</tbody></table></div>';
+  return h;
+}
+
+/* ---------- ALERTAS DE BAJAS ---------- */
+function vAlertas() {
+  const pend = pendientes().filter(filtroComun);
+  const fuera = bajasOk().filter(filtroComun).filter(b => b.dh > D.cfg.slaBaja);
+  const prox = pend.filter(b => b.sem !== 'ROJO' && b.fo && (new Date(b.fo) - new Date(D.hoy)) / 864e5 <= 14);
+  const pr = pend.filter(b => b.sem === 'ROJO'), pa = pend.filter(b => b.sem === 'AMARILLO');
+  const compF = fuera.filter(b => b.estado === 'COMPLETADO');
+  let h = `<div class="grid g4">
+    ${tile('Pendientes +45 hábiles', nf(pr.length), `${pr.filter(b => !b.plan).length} sin plan · ${pr.filter(b => !b.evid).length} sin evidencia`, '<span style="font-size:26px">⛔</span>', "S.alertaVista='todas';render()")}
+    ${tile('Pendientes 31 a 45', nf(pa.length), 'por vencer', '<span style="font-size:26px">⚠</span>', "S.alertaVista='todas';render()")}
+    ${tile('Vencen en 14 días', nf(prox.length), 'en plazo, a vigilar', '<span style="font-size:26px">⏳</span>', "S.alertaVista='prox';render()")}
+    ${tile('No cumplieron 45 días', nf(fuera.length), `${compF.length} completadas tarde · ${fuera.length - compF.length} pendientes`, '<span style="font-size:26px">🗂</span>', "S.alertaVista='fuera';render()")}
+  </div>
+  <div class="filters">${selSpvProm(bajasOk())}
+    ${[['todas', 'Semáforo'], ['fuera', 'No cumplieron 45 días'], ['prox', 'Por vencer'], ['sigue', 'Siguen comprando']].map(([k, l]) => `<span class="chip ${S.alertaVista === k ? 'on' : ''}" onclick="S.alertaVista='${k}';render()">${l}</span>`).join('')}
+    <button class="btn" onclick="csvBajas()">⬇ CSV</button></div>`;
+  if (S.alertaVista === 'fuera') {
+    return h + `<div class="sec">Bajas que no cumplieron los 45 días hábiles <small>${fuera.length} · pendientes y completadas</small></div>` +
+      tabla(['Estado', 'Código', 'Razón social', 'Supervisor', 'Promotor', 'Motivo', 'Pedido', 'Anulación', 'Hábiles', 'Plan de acción', 'Responsable', 'Deadline', 'Evidencia', ''],
+        fuera.sort((a, b) => b.dh - a.dh).map(b => [`<span class="pill ${SEM[b.sem][1]}">${b.estado === 'COMPLETADO' ? 'Completada tarde' : 'Pendiente'}</span>`, `<span class="code">${esc(b.c)}</span>`, { v: esc(b.rs), cls: 'w' }, who(b.spv), who(b.prom), esc(b.mot), fd(b.fi) + (b.arrastre ? ' <span class="pill p-n">arrastre</span>' : ''), fd(b.ff) || '—',
+          { v: `<b style="color:${COL.crit}">${b.dh}</b>` }, { v: esc(b.plan || '⚠ sin plan'), cls: 'w' }, esc(b.resp), fd(b.dl), b.evid ? `<a href="${esc(b.evid)}" target="_blank">📎</a>` : '<span class="pill p-c">falta</span>', b.fila ? `<a href="${sheetLink(D.cfg.gidBaja, b.fila)}" target="_blank">fila ${b.fila}</a>` : '']));
+  }
+  let P = pend;
+  if (S.alertaVista === 'prox') P = prox; else if (S.alertaVista === 'sigue') P = pend.filter(b => b.hlPost > 0);
+  const col = (cls, tit, arr) => `<div class="col"><h4>${tit}<span class="pill ${cls}">${arr.length}</span></h4>${arr.sort((a, b) => b.dh - a.dh).map(cardBaja).join('') || '<div class="empty">—</div>'}</div>`;
+  return h + `<div class="board">${col('p-c', '⛔ Más de 45 hábiles', P.filter(b => b.sem === 'ROJO'))}${col('p-w', '⚠ 31 a 45 hábiles', P.filter(b => b.sem === 'AMARILLO'))}${col('p-g', '✓ 0 a 30 hábiles', P.filter(b => b.sem === 'VERDE'))}</div>`;
+}
 function cardBaja(b) {
-  const w = Math.min(100, b.dh / 60 * 100), col = b.sem === 'ROJO' ? 'var(--red)' : b.sem === 'AMARILLO' ? 'var(--amber)' : 'var(--green)';
+  const w = Math.min(100, b.dh / 60 * 100), col = b.sem === 'ROJO' ? COL.crit : b.sem === 'AMARILLO' ? COL.warn : COL.good;
   const tags = [];
-  if (b.edf) Object.entries(b.edf).forEach(([k, v]) => tags.push(`<span class="pill p-b">${esc(k)} ${nf(v)}</span>`));
-  if (b.deuda) tags.push(`<span class="pill p-r">Deuda $${nf(b.deuda.saldo)}</span>`);
-  if (b.hlPost > 0) tags.push(`<span class="pill p-a">Sigue comprando · ${nf(b.hlPost, 2)} HL</span>`);
+  if (b.edf) Object.entries(b.edf).forEach(([k, v]) => tags.push(`<span class="pill p-v">${esc(k)} ${nf(v)}</span>`));
+  if (b.deuda) tags.push(`<span class="pill p-c">Deuda $${nf(b.deuda.saldo)}</span>`);
+  if (b.hlPost > 0) tags.push(`<span class="pill p-b">🛒 sigue comprando · ${nf(b.hlPost, 2)} HL</span>`);
   if (b.pedidos > 1) tags.push(`<span class="pill p-n">${b.pedidos} pedidos</span>`);
-  if (!b.enHoja) tags.push(`<span class="pill p-n">agregada por script</span>`);
   if (b.ok) tags.push(`<span class="pill p-g">✓ OK supervisor</span>`);
-  if (b.evid) tags.push(`<a class="pill p-g" href="${esc(b.evid)}" target="_blank">📎 evidencia</a>`);
-  else if (b.sem === 'ROJO') tags.push(`<span class="pill p-r">sin evidencia</span>`);
-  return `<div class="bc"><div class="t"><b>${esc(b.c)}</b><span class="pill ${SEM[b.sem][1]}">${b.dh} hábiles</span></div>
-    <div class="rs">${esc(b.rs)}</div>
-    <div class="meta">${esc(b.spv)} · ${esc(b.prom)} · pedido ${fd(b.fi)} · vence ${fd(b.fo)}</div>
-    <div class="prog"><i style="width:${w}%;background:${col}"></i><span style="position:absolute;left:${45 / 60 * 100}%;top:-2px;bottom:-2px;border-left:2px dashed #1E1912;opacity:.35"></span></div>
-    <div class="meta">${esc(b.mot)}${b.ret && !/NIGUNO|NINGUNO/.test(b.ret) ? ' · retirar ' + esc(b.ret) : ''}</div>
-    <div class="plan ${b.plan ? '' : 'no'}">${b.plan ? '📝 ' + esc(b.plan) + (b.resp ? ` <span class="muted">· ${esc(b.resp)}${b.dl ? ' · ' + fd(b.dl) : ''}</span>` : '') : '⚠ Sin plan de acción — cargarlo en la hoja BAJA'}</div>
+  if (b.evid) tags.push(`<a class="pill p-g" href="${esc(b.evid)}" target="_blank">📎 evidencia</a>`); else if (b.sem === 'ROJO') tags.push(`<span class="pill p-c">sin evidencia</span>`);
+  return `<div class="bc"><div class="t"><span class="code"><b>${esc(b.c)}</b></span><span class="pill ${SEM[b.sem][1]}">${b.dh} hábiles</span></div>
+    <div class="rs">${esc(b.rs)}</div><div class="meta">${who(b.prom)} · pedido ${fd(b.fi)} · vence ${fd(b.fo)}</div>
+    <div class="prog"><i style="width:${w}%;background:${col}"></i><span style="position:absolute;left:75%;top:0;bottom:0;border-left:2px dashed #16213A;opacity:.35"></span></div>
+    <div class="meta">${esc(b.mot)}${b.loc ? ' · ' + esc(b.loc) : ''}</div>
+    <div class="plan ${b.plan ? '' : 'no'}">${b.plan ? '📝 ' + esc(b.plan) + (b.resp ? ` <span class="muted">· ${esc(b.resp)}${b.dl ? ' · ' + fd(b.dl) : ''}</span>` : '') : '⚠ Sin plan de acción'}</div>
     <div class="tags">${tags.join('')}${b.fila ? `<a class="pill p-n" href="${sheetLink(D.cfg.gidBaja, b.fila)}" target="_blank">fila ${b.fila} ↗</a>` : ''}</div></div>`;
 }
 
-/* ---------------- EQUIPO ---------------- */
+/* ---------- EQUIPO ---------- */
 function vEquipo() {
   const al = altasQ(), bj = bajasQ(), pend = pendientes();
-  const spvs = [...new Set(al.map(spvOf).concat(bj.map(spvOf)))].sort();
-  let h = `<div class="filters"><select onchange="S.spv=this.value;render()"><option value="">Todos los supervisores</option>${spvs.map(s => `<option ${S.spv === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
-    <span class="muted small">Clic en un promotor para ver sus altas.</span></div>`;
-  const rows = [];
-  spvs.filter(s => !S.spv || s === S.spv).forEach(s => {
-    const proms = [...new Set(al.concat(bj).filter(x => spvOf(x) === s).map(x => x.prom || '—'))].sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999));
-    proms.forEach(p => rows.push(fila(s, p, al.filter(a => spvOf(a) === s && (a.prom || '—') === p), bj.filter(b => spvOf(b) === s && (b.prom || '—') === p), pend.filter(b => spvOf(b) === s && (b.prom || '—') === p), false)));
-    rows.push(fila(s, 'TOTAL ' + s, al.filter(a => spvOf(a) === s), bj.filter(b => spvOf(b) === s), pend.filter(b => spvOf(b) === s), true));
-  });
-  function fila(s, p, a, b, pp, tot) {
-    const m = met(a, b);
-    const cell = (v, ok, mid) => `<b style="color:${colorPct(v, ok, mid)}">${pctTxt(v)}</b>`;
-    return `<tr ${tot ? 'style="background:#F3EBDC;font-weight:600"' : `style="cursor:pointer" onclick="goTab('altas',{spv:'${esc(s)}',prom:'${esc(p)}',altaFiltro:'todas'})"`}>
-      <td>${tot ? '' : esc(s)}</td><td>${esc(p)}</td><td class="num">${m.altas}</td><td class="num">${cell(m.pSla)}</td><td class="num">${m.fuera ? `<span class="pill p-r">${m.fuera}</span>` : '0'}</td><td class="num">${nf(m.prom, 1)}</td>
-      <td class="num">${cell(m.pFunc, 80, 65)}</td><td class="num">${m.nunca}</td><td class="num">${m.comp}</td><td class="num">${cell(m.pBsla)}</td>
-      <td class="num">${pp.length}</td><td class="num">${pp.filter(x => x.sem === 'ROJO').length ? `<span class="pill p-r">${pp.filter(x => x.sem === 'ROJO').length}</span>` : '0'}</td><td class="num">${m.altas - m.comp}</td></tr>`;
-  }
-  h += `<div class="tbl-wrap" style="max-height:none"><table><thead><tr><th>Supervisor</th><th>Promotor</th><th class="num">Altas</th><th class="num">% ≤3d</th><th class="num">+3 días</th><th class="num">Prom. días</th><th class="num">% funcionan</th><th class="num">Nunca compró</th><th class="num">Bajas compl.</th><th class="num">% ≤45h</th><th class="num">Pend. hoy</th><th class="num">Rojo</th><th class="num">Neto</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
-  // evolución por Q
-  h += `<h2 class="sec">Evolución por trimestre</h2><div class="tbl-wrap" style="max-height:none"><table><thead><tr><th>Trimestre</th><th class="num">Altas</th><th class="num">% ≤3d</th><th class="num">+3 días con causa</th><th class="num">% funcionan</th><th class="num">Bajas pedidas</th><th class="num">Completadas</th><th class="num">% ≤45h</th><th class="num">Neto</th></tr></thead><tbody>` +
-    ['Q1', 'Q2', 'Q3', 'Q4'].map(q => { const a = altasAnio().filter(x => x.q === q && (!S.spv || spvOf(x) === S.spv)), b = bajasOk().filter(x => x.q === q && (!S.spv || spvOf(x) === S.spv)), m = met(a, b);
-      return `<tr><td><b>${q}</b></td><td class="num">${m.altas}</td><td class="num" style="color:${colorPct(m.pSla)}">${pctTxt(m.pSla)}</td><td class="num">${m.conCausa}/${m.fuera}</td><td class="num">${pctTxt(m.pFunc)}</td><td class="num">${m.bajas}</td><td class="num">${m.comp}</td><td class="num" style="color:${colorPct(m.pBsla)}">${pctTxt(m.pBsla)}</td><td class="num">${m.altas - m.comp}</td></tr>`; }).join('') + '</tbody></table></div>';
+  const spvs = [...new Set(al.map(spvOf).concat(bj.map(spvOf)))].filter(s => s !== 'SIN SUPERVISOR').sort();
+  let h = `<div class="grid g2">` + spvs.map(s => { const x = met(al.filter(a => spvOf(a) === s), bj.filter(b => spvOf(b) === s));
+    return `<div class="card" style="cursor:pointer;${S.spv === s ? 'outline:2px solid var(--accent)' : ''}" onclick="S.spv=S.spv==='${esc(s)}'?'':'${esc(s)}';render()"><div class="spv">${avatar(s, true)}<div style="flex:1"><div class="small muted">Supervisor ${S.spv === s ? '· filtrando' : '· clic para filtrar'}</div><h4>${esc(s)}</h4></div></div>
+    <div class="spv st"><div><b>${x.altas}</b><span>altas</span></div><div><b style="color:${colorPct(x.pSla)}">${pctTxt(x.pSla)}</b><span>≤3 días</span></div><div><b>${x.comp}</b><span>bajas compl.</span></div><div><b style="color:${colorPct(x.pBsla)}">${pctTxt(x.pBsla)}</b><span>bajas ≤45h</span></div></div></div>`; }).join('') + '</div>';
+  const f = x => !S.spv || spvOf(x) === S.spv;
+  const cnt = arr => Object.entries(arr.filter(f).reduce((o, x) => { const k = x.prom || '—'; o[k] = (o[k] || 0) + 1; return o; }, {})).map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v);
+  const proms = [...new Set(al.concat(bj).filter(f).map(x => x.prom || '—'))].sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999));
+  h += `<div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Ranking · promotores con más altas <small>${qTxt()}</small></h3>${rankList(cnt(al), COL.alta, k => `goTab('altas',{prom:'${esc(k)}',altaFiltro:'todas'})`)}</div>
+    <div class="card"><h3>Ranking · promotores con más bajas <small>${qTxt()} · pedidas</small></h3>${rankList(cnt(bj), COL.baja, k => `goTab('alertas',{prom:'${esc(k)}'})`)}</div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Saldo neto por promotor <small>altas − bajas completadas</small></h3><div class="chartbox" style="height:${Math.max(220, proms.length * 24)}px"><canvas id="chNeto"></canvas></div></div>
+    <div class="card"><h3>Cumplimiento por promotor <small>% altas ≤3 días · % bajas ≤45 hábiles</small></h3><div id="cumpl"></div></div>
+  </div>`;
+  const rows = proms.map(p => { const x = met(al.filter(a => f(a) && (a.prom || '—') === p), bj.filter(b => f(b) && (b.prom || '—') === p)), pp = pend.filter(b => (b.prom || '—') === p);
+    return [who(p), esc(spvOf(al.concat(bj).find(y => (y.prom || '—') === p) || {})), { v: x.altas }, { v: `<b style="color:${colorPct(x.pSla)}">${pctTxt(x.pSla)}</b>` }, { v: x.fuera ? `<span class="pill p-c">${x.fuera}</span>` : '0' }, { v: `<b style="color:${colorPct(x.pFunc, 80, 65)}">${pctTxt(x.pFunc)}</b>` }, { v: x.bajas }, { v: x.comp }, { v: `<b style="color:${colorPct(x.pBsla)}">${pctTxt(x.pBsla)}</b>` }, { v: pp.length }, { v: x.altas - x.comp }]; });
+  h += `<div class="sec">Detalle por promotor</div>` + tabla(['Promotor', 'Supervisor', 'Altas', '% ≤3d', '+3 días', '% compraron', 'Bajas pedidas', 'Bajas compl.', '% ≤45h', 'Pend. hoy', 'Neto'], rows);
+  setTimeout(() => {
+    const L = proms.map(p => ({ p, a: al.filter(x => f(x) && (x.prom || '—') === p).length, b: bj.filter(x => f(x) && (x.prom || '—') === p && x.estado === 'COMPLETADO').length })).sort((x, y) => (y.a - y.b) - (x.a - x.b));
+    chart('chNeto', { type: 'bar', data: { labels: L.map(x => x.p.replace(/^\d+--/, '')), datasets: [{ label: 'Neto', data: L.map(x => x.a - x.b), backgroundColor: L.map(x => x.a - x.b >= 0 ? COL.alta : COL.baja), borderRadius: 4, maxBarThickness: 14 }] }, options: baseOpts({ indexAxis: 'y', plugins: { legend: { display: false } } }) });
+    const bar = (v, c) => `<span style="display:block;height:8px;border-radius:4px;background:#EEF2F6;overflow:hidden"><i style="display:block;height:100%;width:${v || 0}%;background:${c}"></i></span>`;
+    const el = document.getElementById('cumpl'); if (el) el.innerHTML = proms.map(p => { const x = met(al.filter(a => f(a) && (a.prom || '—') === p), bj.filter(b => f(b) && (b.prom || '—') === p));
+      return `<div class="rank" style="grid-template-columns:30px minmax(80px,120px) 1fr 44px 1fr 44px;cursor:default">${avatar(p)}<span>${esc(p.replace(/^\d+--/, ''))}</span>${bar(x.pSla, colorPct(x.pSla))}<span class="v small">${pctTxt(x.pSla)}</span>${bar(x.pBsla, colorPct(x.pBsla))}<span class="v small">${pctTxt(x.pBsla)}</span></div>`; }).join('') +
+      `<div class="legend"><span>1ª barra: altas en ≤3 días</span><span>2ª barra: bajas en ≤45 hábiles</span></div>`;
+  }, 0);
   return h;
 }
 
-/* ---------------- FUNCIONAN ---------------- */
-function vFuncionan() {
-  const al = altasQ().filter(filtroComun), m = met(al, []);
-  const base = m.altas - m.obs || 1;
-  const bar = (lab, v, color, sub) => `<div class="hbar"><div>${lab}<div class="small muted">${sub || ''}</div></div><div class="b" style="height:22px"><i style="width:${v / (m.altas || 1) * 100}%;background:${color}"></i></div><div class="v">${v}</div></div>`;
-  let h = `<div class="filters">${selSpvProm(altasQ())}</div>
-  <div class="grid k2"><div class="card"><h2 class="sec" style="margin-top:0">Embudo de altas <small>${S.q === 'ANIO' ? 'año' : S.q}</small></h2>
-    ${bar('Altas realizadas', m.altas, '#1E1912')}
-    ${bar('Compraron en ≤30 días', m.func, '#2F7D4F', pctTxt(pct(m.func, base)) + ' de las evaluables')}
-    ${bar('Compraron después', m.tard, '#C98300', pctTxt(pct(m.tard, base)))}
-    ${bar('Nunca compraron', m.nunca, '#B4321F', pctTxt(pct(m.nunca, base)))}
-    ${bar('En observación', m.obs, '#A99B86', 'alta de hace menos de 30 días')}
-    <div class="small muted" style="margin-top:8px">"Funciona" = compró en el mes del alta o en el siguiente (la hoja VENTA viene mensual, equivale a ~30 días). Último mes de venta cargado: ${esc(D.cfg.ultimoMesVenta)}.</div></div>
-    <div class="card"><h2 class="sec" style="margin-top:0">% que funciona por promotor</h2>${(() => {
-      const g = {}; al.forEach(a => { const k = a.prom || '—'; g[k] = g[k] || { t: 0, f: 0, o: 0 }; g[k].t++; if (a.func === 'FUNCIONA') g[k].f++; if (a.func === 'OBSERVACION') g[k].o++; });
-      return Object.entries(g).filter(([k, v]) => v.t - v.o > 0).sort((a, b) => b[1].f / (b[1].t - b[1].o) - a[1].f / (a[1].t - a[1].o)).map(([k, v]) => { const p = pct(v.f, v.t - v.o); return `<div class="hbar" style="cursor:pointer" onclick="S.prom='${esc(k)}';render()"><div>${esc(k)} <span class="muted small">(${v.t - v.o})</span></div><div class="b"><i style="width:${p}%;background:${colorPct(p, 80, 65)}"></i></div><div class="v">${pctTxt(p)}</div></div>`; }).join('');
-    })()}</div></div>`;
-  h += `<h2 class="sec">Altas activas que nunca compraron <small>para decidir: visita del supervisor, reactivar o dar de baja</small></h2>`;
-  h += tabla(['Código', 'Razón social', 'Supervisor', 'Promotor', 'Subcanal', 'Alta', 'Días desde el alta', ''], al.filter(a => a.func === 'NUNCA' && a.activo !== false).sort((a, b) => a.ff > b.ff ? 1 : -1)
-    .map(a => [`<span class="code">${esc(a.c)}</span>`, esc(a.rs), esc(a.spv), esc(a.prom), esc(a.sub), fd(a.ff), { v: Math.round((new Date(D.hoy) - new Date(a.ff)) / 864e5) }, a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank">fila ${a.fila}</a>` : '']));
-  h += `<h2 class="sec">No compraron en 30 días pero compraron después</h2>`;
-  h += tabla(['Código', 'Razón social', 'Promotor', 'Alta', 'HL desde el alta'], al.filter(a => a.func === 'TARDIA').map(a => [`<span class="code">${esc(a.c)}</span>`, esc(a.rs), esc(a.prom), fd(a.ff), { v: nf(a.hlTot, 2) }]));
-  return h;
-}
-
-/* ---------------- CALIDAD ---------------- */
+/* ---------- CALIDAD ---------- */
 function vCalidad() {
   const g = {}; D.control.forEach(c => { if (S.ctlSev && c.sev !== S.ctlSev) return; (g[c.tipo] = g[c.tipo] || { sev: c.sev, l: [] }).l.push(c); });
-  const ord = { alta: 0, media: 1, baja: 2 };
-  const cnt = s => D.control.filter(c => c.sev === s).length;
-  let h = `<div class="chips" style="margin-bottom:12px">${[['', 'Todas', D.control.length], ['alta', 'Prioridad alta', cnt('alta')], ['media', 'Media', cnt('media')], ['baja', 'Baja', cnt('baja')]].map(([k, l, n]) => `<span class="chip ${S.ctlSev === k ? 'on' : ''}" onclick="S.ctlSev='${k}';render()">${l}<span class="c">${n}</span></span>`).join('')}</div>
-    <div class="note" style="margin-bottom:12px">Lo mismo está en la hoja <b>CONTROL ABM</b> del Sheet. Cada corrida del script la regenera.</div>`;
-  h += Object.entries(g).sort((a, b) => ord[a[1].sev] - ord[b[1].sev] || b[1].l.length - a[1].l.length).map(([t, x]) => `<details class="grp"><summary><span class="cnt ${x.sev === 'alta' ? 'bad' : x.sev === 'media' ? 'warn' : 'muted'}">${x.l.length}</span><span style="flex:1"><b>${esc(t)}</b></span><span class="pill ${x.sev === 'alta' ? 'p-r' : x.sev === 'media' ? 'p-a' : 'p-n'}">${x.sev}</span></summary>
-    <div class="body">${tabla(['Código / CUIT', 'Detalle'], x.l.map(c => [`<span class="code">${esc(c.ref)}</span>`, esc(c.det)]))}</div></details>`).join('');
-  return h || '<div class="card empty">Sin observaciones 🎉</div>';
+  const ord = { alta: 0, media: 1, baja: 2 }, cnt = s => D.control.filter(c => c.sev === s).length;
+  const h = `<div class="chips" style="margin-bottom:12px">${[['', 'Todas', D.control.length], ['alta', 'Prioridad alta', cnt('alta')], ['media', 'Media', cnt('media')], ['baja', 'Baja', cnt('baja')]].map(([k, l, n]) => `<span class="chip ${S.ctlSev === k ? 'on' : ''}" onclick="S.ctlSev='${k}';render()">${l}<span class="c">${n}</span></span>`).join('')}</div>`;
+  return h + (Object.entries(g).sort((a, b) => ord[a[1].sev] - ord[b[1].sev] || b[1].l.length - a[1].l.length).map(([t, x]) => `<details class="grp"><summary><span class="cnt" style="color:${x.sev === 'alta' ? COL.crit : x.sev === 'media' ? '#B07A00' : COL.gris}">${x.l.length}</span><span style="flex:1"><b>${esc(t)}</b></span><span class="pill ${x.sev === 'alta' ? 'p-c' : x.sev === 'media' ? 'p-w' : 'p-n'}">${x.sev}</span></summary>
+    <div class="body">${tabla(['Código / CUIT', 'Detalle'], x.l.map(c => [`<span class="code">${esc(c.ref)}</span>`, { v: esc(c.det), cls: 'w' }]))}</div></details>`).join('') || '<div class="card empty">Sin observaciones 🎉</div>');
 }
 
-/* ---------------- AUDITOR ---------------- */
+/* ---------- AUDITOR ---------- */
 function vAuditor() {
   const al = altasQ(), bj = bajasQ(), m = met(al, bj);
-  let h = `<div class="filters noprint"><button class="btn dark" onclick="window.print()">🖨 Imprimir / PDF</button><button class="btn" onclick="csvAltas(true)">⬇ Altas CSV</button><button class="btn" onclick="csvBajas(true)">⬇ Bajas CSV</button><span class="muted small">Elegí el trimestre arriba.</span></div>
-  <div class="card"><h2 class="sec" style="margin-top:0">Evidencia ABM · ${S.q === 'ANIO' ? 'Año ' + D.cfg.anio : S.q + ' ' + D.cfg.anio} <small>generado ${fd(D.hoy)}</small></h2>
-  <div class="grid k4">
-    <div><div class="lab small muted">ALTAS</div><div style="font-family:var(--serif);font-size:28px;font-weight:800">${m.altas}</div><div class="small">${pctTxt(m.pSla)} en ≤3 días · ${m.fuera} desvíos (${m.conCausa} con causa)</div></div>
-    <div><div class="lab small muted">PROMEDIO ALTA</div><div style="font-family:var(--serif);font-size:28px;font-weight:800">${nf(m.prom, 1)} d</div><div class="small">días corridos formulario → sistema</div></div>
-    <div><div class="lab small muted">BAJAS COMPLETADAS</div><div style="font-family:var(--serif);font-size:28px;font-weight:800">${m.comp}</div><div class="small">${pctTxt(m.pBsla)} en ≤45 días hábiles</div></div>
-    <div><div class="lab small muted">BAJAS PENDIENTES</div><div style="font-family:var(--serif);font-size:28px;font-weight:800">${m.pend}</div><div class="small">${m.rojo} con +45 hábiles</div></div>
-  </div>
-  <p class="small" style="margin-top:12px"><b>Criterios.</b> <b>Alta</b>: desde la primera carga del formulario hasta la fecha de alta en el sistema (BASE CLIENTES, "Alta fecha"); SLA ≤ ${D.cfg.slaAlta} días corridos; los desvíos llevan su causa en la columna M de la hoja ALTA.
-  <b>Baja</b>: desde el primer pedido del formulario hasta la fecha de anulación en el sistema ("Anulado fecha"); SLA ≤ ${D.cfg.slaBaja} días hábiles (sin sábados, domingos ni ${D.cfg.feriados.length} feriados cargados); el reloj no se detiene por EDF robado ni por la espera del OK de CMQ. Los casos de más de 45 días llevan plan de acción, responsable, deadline y evidencia en la hoja BAJA.</p></div>`;
-  h += `<h2 class="sec">Altas con desvío (+3 días)</h2>` + tabla(['Código', 'Razón social', 'Promotor', 'Pedido', 'Alta', 'Días', 'Causa'], al.filter(a => !a.sla).map(a => [a.c, esc(a.rs), esc(a.prom), fd(a.fi), fd(a.ff), { v: a.dias }, esc(a.obs || '(sugerida) ' + a.sug)]));
-  h += `<h2 class="sec">Bajas con más de 45 días hábiles</h2>` + tabla(['Código', 'Razón social', 'Supervisor', 'Pedido', 'Anulación', 'Hábiles', 'Estado', 'Plan de acción', 'Responsable', 'Deadline', 'Evidencia'],
-    bj.filter(b => b.dh > D.cfg.slaBaja).sort((a, b) => b.dh - a.dh).map(b => [b.c, esc(b.rs), esc(b.spv), fd(b.fi), fd(b.ff) || '—', { v: b.dh }, esc(b.estado), esc(b.plan || '—'), esc(b.resp || ''), fd(b.dl), b.evid ? `<a href="${esc(b.evid)}" target="_blank">ver</a>` : '<span class="bad">falta</span>']));
-  h += `<h2 class="sec">Todas las altas del período</h2>` + tabla(['Q', 'Código', 'Razón social', 'Promotor', 'Pedido', 'Alta', 'Días', '≤3d'], al.map(a => [a.q, a.c, esc(a.rs), esc(a.prom), fd(a.fi), fd(a.ff), { v: a.dias }, a.sla ? 'SÍ' : 'NO']));
-  h += `<h2 class="sec">Todas las bajas del período</h2>` + tabla(['Q', 'Código', 'Razón social', 'Motivo', 'Pedido', 'Anulación', 'Hábiles', 'Estado'], bj.map(b => [b.q, b.c, esc(b.rs), esc(b.mot), fd(b.fi), fd(b.ff), { v: b.dh }, esc(b.estado)]));
+  let h = `<div class="filters noprint"><button class="btn dark" onclick="window.print()">🖨 Imprimir / PDF</button><button class="btn" onclick="csvAltas(true)">⬇ Altas CSV</button><button class="btn" onclick="csvBajas(true)">⬇ Bajas CSV</button><span class="muted small">Elegí el período en el menú de la izquierda.</span></div>
+  <div class="card"><h3>Evidencia ABM · ${qTxt()} <small>generado ${fd(D.hoy)}</small></h3>
+  <div class="grid g4">${tile('Altas', m.altas, `${pctTxt(m.pSla)} en ≤3 días · ${m.fuera} desvíos (${m.conCausa} con causa)`)}${tile('Promedio alta', nf(m.prom, 1) + ' d', 'días corridos formulario → sistema')}${tile('Bajas completadas', m.comp, `${pctTxt(m.pBsla)} en ≤45 días hábiles`)}${tile('Bajas pendientes', m.pend, `${m.rojo} con +45 hábiles`)}</div>
+  <p class="small" style="margin-top:12px"><b>Criterios.</b> <b>Alta</b>: desde la primera carga del formulario hasta la fecha de alta en el sistema; SLA ≤ ${D.cfg.slaAlta} días corridos; los desvíos llevan su causa en la columna M de la hoja ALTA.
+  <b>Baja</b>: desde el primer pedido del formulario hasta la fecha de anulación en el sistema; SLA ≤ ${D.cfg.slaBaja} días hábiles (sin fines de semana ni feriados); el reloj no se detiene por EDF robado ni por la espera del OK de CMQ. Los casos de más de 45 días llevan plan de acción, responsable, deadline y evidencia.</p></div>`;
+  h += `<div class="sec">Altas con desvío (+3 días)</div>` + tabla(['Código', 'Razón social', 'Promotor', 'Pedido', 'Alta', 'Días', 'Causa'], al.filter(a => !a.sla).map(a => [a.c, esc(a.rs), esc(a.prom), fd(a.fi), fd(a.ff), { v: a.dias }, esc(a.obs || '(sugerida) ' + a.sug)]));
+  h += `<div class="sec">Bajas con más de 45 días hábiles</div>` + tabla(['Código', 'Razón social', 'Supervisor', 'Pedido', 'Anulación', 'Hábiles', 'Estado', 'Plan de acción', 'Responsable', 'Deadline', 'Evidencia'],
+    bj.filter(b => b.dh > D.cfg.slaBaja).sort((a, b) => b.dh - a.dh).map(b => [b.c, esc(b.rs), esc(b.spv), fd(b.fi), fd(b.ff) || '—', { v: b.dh }, esc(b.estado), { v: esc(b.plan || '—'), cls: 'w' }, esc(b.resp || ''), fd(b.dl), b.evid ? `<a href="${esc(b.evid)}" target="_blank">ver</a>` : '<b style="color:#d03b3b">falta</b>']));
+  h += `<div class="sec">Todas las altas del período</div>` + tabla(['Q', 'Código', 'Razón social', 'Promotor', 'Pedido', 'Alta', 'Días', '≤3d'], al.map(a => [a.q, a.c, esc(a.rs), esc(a.prom), fd(a.fi), fd(a.ff), { v: a.dias }, a.sla ? 'SÍ' : 'NO']));
+  h += `<div class="sec">Todas las bajas del período</div>` + tabla(['Q', 'Código', 'Razón social', 'Motivo', 'Pedido', 'Anulación', 'Hábiles', 'Estado'], bj.map(b => [b.q, b.c, esc(b.rs), esc(b.mot), fd(b.fi), fd(b.ff), { v: b.dh }, esc(b.estado)]));
   return h;
 }
 
-/* ---------------- CSV ---------------- */
+/* ---------- CSV ---------- */
 function csv(nombre, cols, rows) {
   const e = v => { v = v == null ? '' : String(v); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   const txt = '﻿' + [cols.join(';')].concat(rows.map(r => r.map(e).join(';'))).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' })); a.download = nombre; a.click();
 }
+const dec = v => String(v == null ? 0 : v).replace('.', ',');
 function csvAltas(todo) {
   const L = todo ? altasQ() : altasQ().filter(filtroComun);
-  csv(`altas_${S.q}_${D.hoy}.csv`, ['Q', 'Codigo', 'Razon social', 'Canal', 'Subcanal', 'Supervisor', 'Promotor', 'Pedido form', 'Alta sistema', 'Dias corridos', 'Dias habiles', 'En SLA 3d', 'Causa col M', 'Causa sugerida', 'Cargas form', 'Funciona', 'HL mes alta', 'HL mes sig', 'HL desde alta'],
-    L.map(a => [a.q, a.c, a.rs, a.canal, a.sub, a.spv, a.prom, a.fi, a.ff, a.dias, a.dh, a.sla ? 'SI' : 'NO', a.obs, a.sug, a.cargas, FUNC[a.func][0], String(a.hl0).replace('.', ','), String(a.hl1).replace('.', ','), String(a.hlTot).replace('.', ',')]));
+  csv(`altas_${S.q}_${D.hoy}.csv`, ['Q', 'Codigo', 'Razon social', 'Canal', 'Subcanal', 'Localidad', 'Supervisor', 'Promotor', 'Pedido form', 'Alta sistema', 'Dias corridos', 'Dias habiles', 'En SLA 3d', 'Causa col M', 'Causa sugerida', 'Cargas form', 'Compro', 'HL mes alta', 'HL mes sig', 'HL desde alta'],
+    L.map(a => [a.q, a.c, a.rs, a.canal, a.sub, a.loc, a.spv, a.prom, a.fi, a.ff, a.dias, a.dh, a.sla ? 'SI' : 'NO', a.obs, a.sug, a.cargas, ETAPA[a.func][0], dec(a.hl0), dec(a.hl1), dec(a.hlTot)]));
 }
 function csvBajas(todo) {
-  const L = todo ? bajasQ() : bajasOk().filter(b => inQ(b.q) || b.estado !== 'COMPLETADO');
-  csv(`bajas_${S.q}_${D.hoy}.csv`, ['Q', 'Codigo', 'Razon social', 'Canal', 'Supervisor', 'Promotor', 'Motivo', 'Pedido form', 'Anulacion sistema', 'Fecha objetivo 45h', 'Dias habiles', 'Dias corridos', 'Estado', 'Semaforo', 'Plan de accion', 'Responsable', 'Deadline', 'Evidencia', 'Pedidos form', 'HL post pedido'],
-    L.map(b => [b.q, b.c, b.rs, b.canal, b.spv, b.prom, b.mot, b.fi, b.ff, b.fo, b.dh, b.dc, b.estado, b.sem, b.plan, b.resp, b.dl, b.evid, b.pedidos, String(b.hlPost || 0).replace('.', ',')]));
+  const L = todo ? bajasQ() : bajasOk().filter(filtroComun);
+  csv(`bajas_${S.q}_${D.hoy}.csv`, ['Q', 'Codigo', 'Razon social', 'Canal', 'Localidad', 'Supervisor', 'Promotor', 'Motivo', 'Pedido form', 'Anulacion sistema', 'Fecha objetivo 45h', 'Dias habiles', 'Dias corridos', 'Estado', 'Semaforo', 'Plan de accion', 'Responsable', 'Deadline', 'Evidencia', 'Pedidos form', 'HL post pedido'],
+    L.map(b => [b.q, b.c, b.rs, b.canal, b.loc, b.spv, b.prom, b.mot, b.fi, b.ff, b.fo, b.dh, b.dc, b.estado, b.sem, b.plan, b.resp, b.dl, b.evid, b.pedidos, dec(b.hlPost)]));
 }
+function csvHoja() { const HB = D.hojaBaja; if (!HB) return; csv(`hoja_baja_${D.hoy}.csv`, HB.hdr.concat(['Evidencia']), HB.rows.map(r => r.v.concat([r.e]))); }
 
-/* ---------------- render ---------------- */
 function render() {
   if (!D) return;
+  CH.forEach(c => c.destroy()); CH = [];
+  if (MAP) { MAP.remove(); MAP = null; }
   renderNav();
-  const V = { resumen: vResumen, altas: vAltas, bajas: vBajas, equipo: vEquipo, funcionan: vFuncionan, calidad: vCalidad, auditor: vAuditor };
-  $('#app').innerHTML = TABS.map(([k]) => `<section class="view ${S.tab === k ? 'on' : ''}" id="v-${k}">${S.tab === k ? V[k]() : ''}</section>`).join('');
-  const inp = document.querySelector(`#v-${S.tab} .filters input`);
-  if (inp && document.activeElement === document.body && S.txt) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  const V = { resumen: vResumen, altas: vAltas, compraron: vCompraron, hoja: vHoja, alertas: vAlertas, equipo: vEquipo, calidad: vCalidad, auditor: vAuditor };
+  $('#app').innerHTML = (V[S.tab] || vResumen)();
 }
 async function init() {
-  try {
-    const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    D = await r.json();
-  } catch (e) {
-    $('#app').innerHTML = `<div class="card empty">No pude leer <b>data.json</b> (${esc(e.message)}). Corré “Actualizar todo” desde el menú 📋 ABM Galaxia del Sheet.</div>`;
-    return;
-  }
+  try { const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); D = await r.json(); }
+  catch (e) { $('#app').innerHTML = `<div class="card empty">No pude leer <b>data.json</b> (${esc(e.message)}). Corré “Actualizar todo” desde el menú 📋 ABM Galaxia del Sheet.</div>`; return; }
+  for (const u of ['fotos.json', 'https://distribuidorazuppa.github.io/GESTION-CNC/fotos.json']) { try { const r = await fetch(u); if (r.ok) { FOTOS = await r.json(); break; } } catch (e) { } }
   const g = new Date(D.generado);
-  $('#sub').innerHTML = `Actualizado ${g.toLocaleDateString('es-AR')} ${g.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} · ${D.altas.length} altas · ${D.bajas.length} bajas · SLA altas ${D.cfg.slaAlta} días corridos · bajas ${D.cfg.slaBaja} hábiles`;
+  $('#sub').textContent = `Actualizado ${g.toLocaleDateString('es-AR')} ${g.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} · SLA altas ${D.cfg.slaAlta} días corridos · bajas ${D.cfg.slaBaja} días hábiles`;
+  $('#upd').textContent = `${D.altas.length} altas · ${D.bajas.length} bajas`;
   $('#lnkSheet').href = sheetLink(D.cfg.gidAlta);
-  $('#foot').innerHTML = `ABM Galaxia · datos del Sheet "ABM 2026 ZUPPA" (RTA FORMULARIO + BASE CLIENTES + ALTA + BAJA + VENTA). El script corre todos los días a las 7 h y con cada formulario.`;
   const h = location.hash.replace('#', ''); if (TABS.some(t => t[0] === h)) S.tab = h;
   render();
 }
