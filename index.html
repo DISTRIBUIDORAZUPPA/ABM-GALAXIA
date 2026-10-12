@@ -468,7 +468,7 @@ function vAltas() {
   return h + tabla(['Código', 'Razón social', 'Promotor', 'Localidad', 'Ubicación', 'Subcanal', 'Pedido', 'Alta', 'Días', 'Causa (col. M)', '¿Compró?', ''],
     L.sort((a, b) => (b.dias - a.dias) || (b.ff > a.ff ? 1 : -1)).map(a => [
       `<span class="code">${esc(a.c)}</span>`, { v: esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : ''), cls: 'w' }, who(a.prom), esc(a.loc), ubic(a), esc(a.sub) + (a.subOk === false ? ` <span class="pill p-w" title="Árbol: ${esc(a.arbol)}">≠ árbol</span>` : ''),
-      fd(a.fi) + (a.cargas > 1 ? ` <span class="pill p-n">${a.cargas}×</span>` : ''), fd(a.ff), `<span class="pill ${a.sla ? 'p-g' : 'p-c'}">${a.dias} d</span>`,
+      fd(a.fi) + (a.cargas > 1 ? ` <span class="pill p-n" title="Cargas del formulario: ${esc((a.pedidos || []).join(' · '))}. El reloj toma la primera; si una carga no corresponde, marcala en Solicitudes → Gestionar → No corresponde.">${a.cargas}×</span>` : ''), fd(a.ff), `<span class="pill ${a.sla ? 'p-g' : 'p-c'}">${a.dias} d</span>`,
       a.sla ? '' : (a.obs ? esc(a.obs) : `<span class="pill p-w">sugerida: ${esc(a.sug)}</span>`), `<span class="pill ${ETAPA[a.func][2]}">${ETAPA[a.func][0]}</span>`,
       a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank">fila ${a.fila}</a>` : ''
     ]));
@@ -692,7 +692,7 @@ function editarSol(id) {
     <h3>${s.t === 'ALTA' ? 'Alta' : 'Baja'} · ${esc(s.rs || s.ident)}</h3><div class="small muted">Pedido ${fd(s.f)} por ${esc(s.quien)} · código ${esc(s.c || '—')} · estado automático: ${esc(s.est.toLowerCase())}</div>
     <label>Estado de gestión</label><div class="chips">${Object.entries(SOL_EST).filter(([k]) => k !== 'OTRO').map(([k, v]) => `<label class="chip" style="display:inline-flex;gap:6px;align-items:center"><input type="radio" name="s_est" value="${k}" ${e === k ? 'checked' : ''}>${v[0]}</label>`).join('')}</div>
     <label>Comentario</label><textarea id="s_com" placeholder="Ej.: cargada en sistema, falta firma, se retiró la heladera…">${esc(s.g && s.g.com || '')}</textarea>
-    ${s.t === 'BAJA' ? '<div class="small muted" style="margin-top:6px">Si la marcás como <b>No corresponde</b>, también sale de pendientes de bajas (STATUS "NO REALIZADO" en la hoja BAJA).</div>' : ''}
+    ${s.t === 'BAJA' ? '<div class="small muted" style="margin-top:6px">Si la marcás como <b>No corresponde</b>, también sale de pendientes de bajas (STATUS "NO REALIZADO" en la hoja BAJA).</div>' : '<div class="small muted" style="margin-top:6px">Si esta carga es repetida, de prueba o tiene un error, marcala como <b>No corresponde</b>: deja de contar para el reloj del alta (se toma la carga siguiente). Se recalcula en la próxima actualización (⚡ Actualizar rápido).</div>'}
     <div id="e_err" class="small" style="color:#d03b3b;margin-top:8px"></div>
     <div class="acts2"><button class="btn" onclick="cerrarModal()">Cancelar</button><button class="btn dark" id="e_btn" onclick="guardarSol('${id}')">💾 Guardar</button></div></div></div>`;
 }
