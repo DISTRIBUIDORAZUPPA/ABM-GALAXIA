@@ -47,6 +47,7 @@ aside.side{overflow-y:auto;background:var(--cream);border-right:1px solid var(--
 .embed .qsel{width:auto;display:flex;flex-wrap:wrap;gap:4px} .embed .qsel .msel{margin:0;width:auto}
 .chips.vista{margin-bottom:12px} .chips.vista .chip{font-size:12.5px;padding:8px 14px}
 table.rta td{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.pubwarn{background:#FFF4D9;border:1px solid #F1C96B;color:#6B4A00;border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:12.5px}
 .geo{font-size:11px;white-space:nowrap;text-decoration:none} .geo:hover{text-decoration:underline}
 .formbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(90deg,#A51F36,#C62839 60%,#2BB5AA);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:14px}
 .formbar .btn{background:#fff}
@@ -680,7 +681,7 @@ function vSolicitudes() {
         `<span class="pill ${/^REALIZADA/.test(s.est) ? 'p-g' : s.est === 'PENDIENTE' ? 'p-w' : s.est === 'NO CORRESPONDE' ? 'p-n' : 'p-c'}">${esc(s.est.toLowerCase())}</span>`, fd(s.ff),
         { v: s.dias != null ? `<b style="color:${s.sla === false || (!s.ff && ((s.t === 'ALTA' && s.dias > D.cfg.slaAlta) || (s.t === 'BAJA' && s.dias > D.cfg.slaBaja))) ? COL.crit : 'inherit'}">${s.dias}</b> <span class="muted small">${s.t === 'ALTA' ? 'd' : 'háb.'}</span>` : '' },
         `<span class="pill ${SOL_EST[e][1]}">${SOL_EST[e][0]}</span>${s.g && s.g.com ? `<div class="small muted" style="white-space:normal;max-width:220px">${esc(s.g.com)}${s.g.usr ? ' · ' + esc(s.g.usr) : ''}</div>` : ''}`,
-        (puedeEditar(s.spv) ? `<button class="edit" onclick="editarSol('${s.id}')">✏️ Gestionar</button> ` : '') + `<button class="edit" style="background:#FBF6EA;color:var(--ink2)" onclick="fichaRta(${s.fila})" title="Ver todas las respuestas del formulario">🔍 Ficha</button> ` + (D.cfg.gidRta ? `<a class="small" href="${sheetLink(D.cfg.gidRta, s.fila)}" target="_blank">fila ${s.fila}</a>` : '')];
+        (puedeEditar(s.spv) ? `<button class="edit" onclick="editarSol('${s.id}')">✏️ Gestionar</button> ` : '') + `<button class="edit" style="background:#FBF6EA;color:var(--ink2)" onclick="fichaSol('${s.id}')" title="Ver todas las respuestas del formulario">🔍 Ficha</button> ` + (D.cfg.gidRta ? `<a class="small" href="${sheetLink(D.cfg.gidRta, s.fila)}" target="_blank">fila ${s.fila}</a>` : '')];
     }));
   return h;
 }
@@ -704,6 +705,12 @@ async function guardarSol(id) {
     aplicarSol(id, r.g); cerrarModal(); toast('✅ Guardado'); render();
   } catch (e) { $('#e_err').textContent = 'No pude guardar: ' + e.message; btn.disabled = false; btn.textContent = '💾 Guardar'; }
 }
+function solKey(s) { return 'K|' + s.t + '|' + s.f + '|' + String(s.ident == null ? '' : s.ident).replace(/\s+/g, '').toUpperCase(); }
+function avisoPub(e) {
+  const el = document.createElement('div'); el.className = 'pubwarn';
+  el.innerHTML = `⚠️ <b>La última actualización no se pudo publicar</b> (${esc(new Date(e.fec).toLocaleString('es-AR'))}). El tablero muestra los datos de ${esc(new Date(D.generado).toLocaleString('es-AR'))}. Detalle: ${esc(e.msg)}`;
+  const m = document.querySelector('main'); m.insertBefore(el, m.children[1]);
+}
 function aplicarSol(id, g) {
   const s = (D.solicitudes || []).find(x => x.id === id); if (!s) return;
   s.g = g;
@@ -717,15 +724,15 @@ function csvSol() {
 }
 
 /* ---------- HOJA DE RESPUESTAS COMPLETA (rta.json) ---------- */
-let RTA = null, RTA_ERR = '', RTA_CARGANDO = false;
+let RTA = null, RTA_ERR = '', RTA_CARGANDO = false, SOL_TS = {};
 const RTA_TIPOS = { ALTA: ['Altas', 'p-a'], BAJA: ['Bajas', 'p-b'], MODIFICACION: ['Modificaciones', 'p-v'], 'CAMBIO DE SUB CANAL': ['Cambio de subcanal', 'p-n'] };
 async function cargarRta() {
   if (RTA || RTA_CARGANDO) return; RTA_CARGANDO = true;
   try {
     const r = await fetch('rta.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
-    RTA = await r.json();
+    RTA = await r.json(); SOL_TS = {}; (D.solicitudes || []).forEach(s => { if (s.ts) SOL_TS[s.ts] = s; });
     RTA.rows.forEach(x => { const q = String(x.v[2] || '').toUpperCase().trim(); const m = QMAP[q] || {}; x.quien = q; x.spv = m.spv || ''; x.prom = m.prom || q;
-      x.sol = (D.solicitudes || []).find(s => s.fila === x.fila) || null; x.txt = (Object.values(x.v).join(' ') + ' ' + (x.arbol || '')).toUpperCase(); });
+      x.sol = (x.ts && SOL_TS[x.ts]) || (!x.ts ? (D.solicitudes || []).find(s => s.fila === x.fila && !s.ts) : null) || null; x.txt = (Object.values(x.v).join(' ') + ' ' + (x.arbol || '')).toUpperCase(); });
     if (SCOPE) RTA.rows = RTA.rows.filter(x => x.spv === SCOPE);
   } catch (e) { RTA_ERR = e.message; }
   RTA_CARGANDO = false; render();
@@ -765,6 +772,13 @@ function estRta(r) {
   const s = r.sol; if (!s) return '<span class="muted small">—</span>';
   const e = estEf(s); return `<span class="pill ${SOL_EST[e][1]}">${SOL_EST[e][0]}</span>`;
 }
+async function fichaSol(id) {
+  const s = (D.solicitudes || []).find(x => x.id === id); if (!s) return;
+  if (!RTA) { $('#modal').innerHTML = `<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="box"><div class="loading" style="padding:30px 0">Cargando respuestas…</div></div></div>`; await cargarRta(); if (!RTA) { cerrarModal(); toast('La hoja de respuestas todavía no está publicada'); return; } }
+  const r = s.ts ? RTA.rows.find(x => x.ts === s.ts) : RTA.rows.find(x => x.fila === s.fila);
+  if (!r) { cerrarModal(); toast('No encontré esa respuesta en la hoja (¿se borró la fila?)'); return; }
+  fichaRta(r.fila);
+}
 async function fichaRta(fila) {
   if (!RTA) { $('#modal').innerHTML = `<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="box"><div class="loading" style="padding:30px 0">Cargando respuestas…</div></div></div>`; await cargarRta(); if (!RTA) { cerrarModal(); toast('La hoja de respuestas todavía no está publicada'); return; } }
   const r = RTA.rows.find(x => x.fila === fila); if (!r) { cerrarModal(); toast('No encontré la fila ' + fila); return; }
@@ -773,7 +787,7 @@ async function fichaRta(fila) {
   if (r.arbol) campos.push(['Respuestas del árbol', r.arbol, -1]);
   const s = r.sol;
   $('#modal').innerHTML = `<div class="modal" onclick="if(event.target===this)cerrarModal()"><div class="box" style="width:min(680px,100%)">
-    <h3><span class="pill ${(RTA_TIPOS[r.t] || ['', 'p-n'])[1]}">${(RTA_TIPOS[r.t] || [r.t])[0]}</span> ${esc(r.v[5] || r.v[3] || r.v[46] || r.v[27] || '')}</h3>
+    <h3><span class="pill ${(RTA_TIPOS[r.t] || ['', 'p-n'])[1]}">${(RTA_TIPOS[r.t] || [r.t])[0]}</span> ${esc((r.t === 'BAJA' && r.sol && r.sol.rs ? r.sol.c + ' · ' + r.sol.rs : '') || r.v[5] || r.v[3] || r.v[46] || r.v[27] || '')}</h3>
     <div class="small muted">Fila ${r.fila} de RTA FORMULARIO · ${esc(r.v[0] || r.f)} · ${esc(r.prom.replace(/^\d+--/, ''))}${r.spv ? ' · ' + esc(r.spv) : ''}${s ? ` · estado: <b>${SOL_EST[estEf(s)][0].toLowerCase()}</b>${s.c ? ' · código ' + esc(s.c) : ''}` : ''}</div>
     <table style="margin-top:12px;font-size:12.5px"><tbody>${campos.map(([h, v, k]) => `<tr><td style="white-space:normal;color:var(--ink2);font-weight:600;width:38%;vertical-align:top">${esc(h)}</td><td style="white-space:normal">${k >= 0 ? rtaVal(v, k, r) : esc(v)}</td></tr>`).join('')}</tbody></table>
     <div class="acts2" style="flex-wrap:wrap">
@@ -962,7 +976,15 @@ function aplicarEdicion(code, f) {
 async function traerEdiciones() {
   if (!D.cfg.webApp) return;
   try { const r = await (await fetch(D.cfg.webApp + '?action=bajas&t=' + Date.now())).json(); if (r.ok) Object.entries(r.rows).forEach(([c, f]) => aplicarEdicion(c, f)); } catch (e) { }
-  try { const r = await (await fetch(D.cfg.webApp + '?action=solicitudes&t=' + Date.now())).json(); if (r.ok) Object.entries(r.rows).forEach(([id, g]) => aplicarSol(id, g)); } catch (e) { }
+  try { const r = await (await fetch(D.cfg.webApp + '?action=solicitudes&t=' + Date.now())).json();
+    if (r.ok) {
+      const rows = r.rows || {}, ids = new Set(Object.keys(rows));
+      Object.entries(rows).forEach(([id, g]) => {
+        if (id.indexOf('K|') !== 0) return aplicarSol(id, g);
+        (D.solicitudes || []).forEach(s => { if (!ids.has(s.id) && solKey(s) === id) aplicarSol(s.id, g); });   // gestiones guardadas con el ID viejo
+      });
+      if (r.pubErr && (!D.generado || r.pubErr.fec > D.generado)) avisoPub(r.pubErr);
+    } } catch (e) { }
 }
 function editarBaja(code) {
   const b = D.bajas.find(x => x.c === code) || { c: code };
