@@ -48,6 +48,9 @@ aside.side{overflow-y:auto;background:var(--cream);border-right:1px solid var(--
 .chips.vista{margin-bottom:12px} .chips.vista .chip{font-size:12.5px;padding:8px 14px}
 table.rta td{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .pubwarn{background:#FFF4D9;border:1px solid #F1C96B;color:#6B4A00;border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:12.5px}
+.btn.limpiar[disabled]{opacity:.45;cursor:default} .btn.limpiar.activo{background:var(--crim);border-color:var(--crim);color:#fff}
+.qsel .limpiar-side{all:unset;grid-column:1/-1;margin-top:6px;text-align:center;font-size:12px;padding:7px 0;border-radius:8px;background:var(--crim);color:#fff;cursor:pointer;font-weight:600}
+.embed .qsel .limpiar-side{grid-column:auto;padding:6px 10px;margin:0}
 .geo{font-size:11px;white-space:nowrap;text-decoration:none} .geo:hover{text-decoration:underline}
 .formbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(90deg,#A51F36,#C62839 60%,#2BB5AA);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:14px}
 .formbar .btn{background:#fff}
@@ -228,6 +231,11 @@ details.grp .body{padding:0 14px 12px}
 <script>
 'use strict';
 const S = { tab: 'resumen', solVista: 'seg', rtaTipo: '', q: 'ANIO', mes: '', solTipo: '', solEst: '', consTipo: 'altas', consMet: 'n', spv: '', prom: '', txt: '', altaFiltro: 'todas', ctlSev: '', mapModo: 'ambas', mapVista: 'loc', etapa: 'TODAS', mesSel: '', hbStatus: '', hbAct: false, alertaVista: 'todas' };
+const S0 = Object.assign({}, S);   // valores iniciales, para "Limpiar filtros"
+const FILTROS = ['q', 'mes', 'solTipo', 'solEst', 'spv', 'prom', 'txt', 'altaFiltro', 'ctlSev', 'etapa', 'mesSel', 'hbStatus', 'hbAct', 'alertaVista', 'rtaTipo', 'mapModo'];
+function hayFiltros() { return FILTROS.some(k => k === 'spv' ? S.spv !== (SCOPE || '') : S[k] !== S0[k]); }
+function limpiarFiltros() { FILTROS.forEach(k => { S[k] = k === 'spv' ? (SCOPE || '') : S0[k]; }); render(); toast('🧹 Filtros limpios'); }
+function btnLimpiar() { const on = hayFiltros(); return `<button class="btn limpiar${on ? ' activo' : ''}" onclick="limpiarFiltros()" title="Vuelve todos los filtros a como estaban al abrir el tablero"${on ? '' : ' disabled'}>🧹 Limpiar filtros</button>`; }
 let D = null, FOTOS = {}, CH = [], MAP = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -293,7 +301,8 @@ function renderNav() {
   $('#nav').innerHTML = TABS.map(([k, ic, l]) => `<button class="${S.tab === k ? 'on' : ''}" onclick="goTab('${k}')"><span class="ic">${ic}</span>${l}${badge[k] ? `<span class="n">${badge[k]}</span>` : ''}</button>`).join('');
   const ultMes = Math.max(mesDe(D.hoy), 0);
   $('#qsel').innerHTML = ['Q1', 'Q2', 'Q3', 'Q4', 'ANIO'].map(q => `<button class="${S.q === q && S.mes === '' ? 'on' : ''}" onclick="setQ('${q}')">${q === 'ANIO' ? 'Año' : q}</button>`).join('') +
-    `<select class="msel" onchange="setMes(this.value)"><option value="">Todos los meses</option>${MESL.slice(0, ultMes + 1).map((m, i) => `<option value="${i}" ${String(S.mes) === String(i) ? 'selected' : ''}>${m}</option>`).join('')}</select>`;
+    `<select class="msel" onchange="setMes(this.value)"><option value="">Todos los meses</option>${MESL.slice(0, ultMes + 1).map((m, i) => `<option value="${i}" ${String(S.mes) === String(i) ? 'selected' : ''}>${m}</option>`).join('')}</select>` +
+    (hayFiltros() ? `<button class="limpiar-side" onclick="limpiarFiltros()">🧹 Limpiar filtros</button>` : '');
 }
 
 function ring(p, color, size = 58) {
@@ -1029,6 +1038,8 @@ function render() {
   renderNav();
   const V = { solicitudes: vSolicitudes, consolidado: vConsolidado, resumen: vResumen, altas: vAltas, compraron: vCompraron, hoja: vHoja, alertas: vAlertas, equipo: vEquipo, calidad: vCalidad, auditor: vAuditor };
   $('#app').innerHTML = (V[S.tab] || vResumen)();
+  document.querySelectorAll('#app .filters').forEach(f => { if (!f.querySelector('.limpiar')) f.insertAdjacentHTML('beforeend', btnLimpiar()); });
+  if (!document.querySelector('#app .filters') && hayFiltros()) $('#app').insertAdjacentHTML('afterbegin', `<div class="filters" style="margin-top:0">${btnLimpiar()}</div>`);
 }
 async function init() {
   try { const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); D = await r.json(); }
