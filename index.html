@@ -756,6 +756,12 @@ function vRtaHoja() {
     return RTA_ERR ? `<div class="card empty" style="text-align:left;line-height:1.6"><b>Todavía no está publicada la hoja de respuestas</b> (rta.json: ${esc(RTA_ERR)}).<br>Corré <b>📋 ABM Galaxia → 🔄 Actualizar todo</b> con el script nuevo y recargá.</div>` : '<div class="loading">Cargando respuestas del formulario…</div>'; }
   const base = rtaFiltrados(), orden = Object.keys(RTA_TIPOS), tipos = [...new Set(RTA.rows.map(r => r.t))].sort((a, b) => ((orden.indexOf(a) + 1) || 99) - ((orden.indexOf(b) + 1) || 99));
   if (!S.rtaTipo || !tipos.includes(S.rtaTipo)) S.rtaTipo = tipos.includes('ALTA') ? 'ALTA' : tipos[0];
+  // si se busca algo que no está en el tipo elegido (ej. un código de baja estando en Altas), saltar al tipo donde aparece
+  if (S.txt) {
+    const q = S.txt.trim(), esCod = /^\d{3,6}$/.test(q), exacto = r => Object.values(r.v).some(x => { const d = String(x).replace(/\D/g, ''); return d === q || (d.length > 8 && d.endsWith(q.padStart(6, '0'))); });
+    const ok = t => base.some(r => r.t === t && (!esCod || exacto(r)));
+    if (!ok(S.rtaTipo)) { const t2 = tipos.find(ok) || tipos.find(t => base.some(r => r.t === t)); if (t2) S.rtaTipo = t2; }
+  }
   const L = base.filter(r => r.t === S.rtaTipo), cols = rtaCols(RTA.rows.filter(r => r.t === S.rtaTipo)).filter(k => k !== 0);
   const conArbol = L.some(r => r.arbol);
   let h = `<div class="chips" style="margin-top:12px">${tipos.map(t => `<span class="chip ${S.rtaTipo === t ? 'on' : ''}" onclick="S.rtaTipo='${esc(t)}';render()">${(RTA_TIPOS[t] || [t])[0]}<span class="c">${base.filter(r => r.t === t).length}</span></span>`).join('')}</div>
