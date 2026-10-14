@@ -451,6 +451,8 @@ function filtroComun(x) {
 function vAltas() {
   const base = altasQ();
   const F = { todas: ['Todas', a => true], fuera: ['+3 días', a => !a.sla], sincausa: ['+3 días sin causa', a => !a.sla && !a.obs], agregadas: ['Agregadas por el script', a => !a.enHoja && a.orig !== 'HOJA'], pend: ['Pendientes en base', null] };
+  [...new Set((D.etiquetas || []).map(x => x.e))].forEach(e => { F['etq:' + e] = ['Altas de ' + e, a => (a.etq || []).includes(e)]; });
+  if (!F[S.altaFiltro]) S.altaFiltro = 'todas';
   const m = met(base.filter(filtroComun), []);
   let h = `<div class="grid g4">
     ${tile('Altas', nf(m.altas), `prom. ${nf(m.prom, 1)} días`, '', "S.altaFiltro='todas';render()")}
@@ -467,6 +469,10 @@ function vAltas() {
         p.existe ? `<span class="pill p-v">CUIT ya existe: ${esc(p.cands.join(', '))}</span>` : (p.cargas > 1 ? `<span class="pill p-n">${p.cargas} cargas</span>` : '')]));
   }
   const L = base.filter(F[S.altaFiltro][1]).filter(filtroComun);
+  if (S.altaFiltro.indexOf('etq:') === 0) {
+    const e = S.altaFiltro.slice(4), fuera = (D.etiquetas || []).filter(x => x.e === e && !x.enAltas);
+    h += `<div class="note" style="margin-bottom:10px">Clientes marcados como <b>alta de ${esc(e)}</b> en la hoja <b>ABM ETIQUETAS</b> del Sheet (para agregar más, sumá una fila con el código y la etiqueta).${fuera.length ? ` <b style="color:${COL.crit}">Revisar:</b> ${fuera.map(x => `${esc(x.c)} ${esc(x.rs || '(no existe en base)')}${x.alta ? ' · alta en base ' + fd(x.alta) : ''}${x.anulado ? ' · anulado' : ''}`).join(' · ')} — no figura${fuera.length > 1 ? 'n' : ''} como alta ${D.cfg.anio}.` : ''}</div>`;
+  }
   if (S.altaFiltro === 'fuera' || S.altaFiltro === 'sincausa') {
     h += `<div class="grid g2" style="margin-bottom:14px"><div class="card"><h3>Causas de las altas +3 días</h3><div class="chartbox sm"><canvas id="chCausa"></canvas></div><div class="small muted" style="margin-top:6px">Las "Sugerida" las propone el script: confirmalas en la columna M.</div></div>
       <div class="card"><h3>¿Quién demora? <small>altas +3 días por promotor</small></h3>${rankList(Object.entries(base.filter(a => !a.sla).filter(filtroComun).reduce((o, a) => (o[a.prom || '—'] = (o[a.prom || '—'] || 0) + 1, o), {})).map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v).slice(0, 8), COL.crit, k => `S.prom='${esc(k)}';render()`)}</div></div>`;
@@ -476,7 +482,7 @@ function vAltas() {
   }
   return h + tabla(['Código', 'Razón social', 'Promotor', 'Localidad', 'Ubicación', 'Subcanal', 'Pedido', 'Alta', 'Días', 'Causa (col. M)', '¿Compró?', ''],
     L.sort((a, b) => (b.dias - a.dias) || (b.ff > a.ff ? 1 : -1)).map(a => [
-      `<span class="code">${esc(a.c)}</span>`, { v: esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : ''), cls: 'w' }, who(a.prom), esc(a.loc), ubic(a), esc(a.sub),
+      `<span class="code">${esc(a.c)}</span>`, { v: esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : '') + (a.etq || []).map(e => ` <span class="pill p-v" title="Alta de ${esc(e)} (hoja ABM ETIQUETAS)">${esc(e)}</span>`).join(''), cls: 'w' }, who(a.prom), esc(a.loc), ubic(a), esc(a.sub),
       fd(a.fi) + (a.cargas > 1 ? ` <span class="pill p-n" title="Cargas del formulario: ${esc((a.pedidos || []).join(' · '))}. El reloj toma la primera; si una carga no corresponde, marcala en Solicitudes → Gestionar → No corresponde.">${a.cargas}×</span>` : ''), fd(a.ff), `<span class="pill ${a.sla ? 'p-g' : 'p-c'}">${a.dias} d</span>`,
       a.sla ? '' : (a.obs ? esc(a.obs) : `<span class="pill p-w">sugerida: ${esc(a.sug)}</span>`), `<span class="pill ${ETAPA[a.func][2]}">${ETAPA[a.func][0]}</span>`,
       a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank">fila ${a.fila}</a>` : ''
@@ -506,7 +512,7 @@ function vCompraron() {
   const tit = (S.etapa === 'TODAS' ? 'Todas las altas' : ETAPA[S.etapa][0]) + (S.mesSel !== '' ? ' · ' + MES[+S.mesSel] : '');
   h += `<div class="sec">${tit} <small>${L.length} clientes${S.etapa !== 'TODAS' || S.mesSel !== '' ? ` · <a href="#" onclick="S.etapa='TODAS';S.mesSel='';render();return false">ver todas</a>` : ''}</small></div>`;
   h += tabla(['Código', 'Razón social', 'Promotor', 'Localidad', 'Ubicación', 'Subcanal', 'Alta', 'Días desde el alta', 'HL mes alta', 'HL mes sig.', 'HL total', 'Estado', ''],
-    L.sort((a, b) => a.ff > b.ff ? 1 : -1).map(a => [`<span class="code">${esc(a.c)}</span>`, { v: esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : ''), cls: 'w' }, who(a.prom), esc(a.loc), ubic(a), esc(a.sub), fd(a.ff),
+    L.sort((a, b) => a.ff > b.ff ? 1 : -1).map(a => [`<span class="code">${esc(a.c)}</span>`, { v: esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : '') + (a.etq || []).map(e => ` <span class="pill p-v" title="Alta de ${esc(e)} (hoja ABM ETIQUETAS)">${esc(e)}</span>`).join(''), cls: 'w' }, who(a.prom), esc(a.loc), ubic(a), esc(a.sub), fd(a.ff),
       { v: Math.round((new Date(D.hoy) - new Date(a.ff)) / 864e5) }, { v: nf(a.hl0, 2) }, { v: nf(a.hl1, 2) }, { v: nf(a.hlTot, 2) }, `<span class="pill ${ETAPA[a.func][2]}">${ETAPA[a.func][0]}</span>`,
       a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank">fila ${a.fila}</a>` : '']));
   setTimeout(() => {
@@ -960,8 +966,8 @@ function csv(nombre, cols, rows) {
 const dec = v => String(v == null ? 0 : v).replace('.', ',');
 function csvAltas(todo) {
   const L = todo ? altasQ() : altasQ().filter(filtroComun);
-  csv(`altas_${S.q}_${D.hoy}.csv`, ['Q', 'Codigo', 'Razon social', 'Canal', 'Subcanal', 'Localidad', 'Supervisor', 'Promotor', 'Pedido form', 'Alta sistema', 'Dias corridos', 'Dias habiles', 'En SLA 3d', 'Causa col M', 'Causa sugerida', 'Cargas form', 'Compro', 'HL mes alta', 'HL mes sig', 'HL desde alta'],
-    L.map(a => [a.q, a.c, a.rs, a.canal, a.sub, a.loc, a.spv, a.prom, a.fi, a.ff, a.dias, a.dh, a.sla ? 'SI' : 'NO', a.obs, a.sug, a.cargas, ETAPA[a.func][0], dec(a.hl0), dec(a.hl1), dec(a.hlTot)]));
+  csv(`altas_${S.q}_${D.hoy}.csv`, ['Q', 'Codigo', 'Razon social', 'Canal', 'Subcanal', 'Localidad', 'Supervisor', 'Promotor', 'Pedido form', 'Alta sistema', 'Dias corridos', 'Dias habiles', 'En SLA 3d', 'Causa col M', 'Causa sugerida', 'Cargas form', 'Compro', 'HL mes alta', 'HL mes sig', 'HL desde alta', 'Etiqueta'],
+    L.map(a => [a.q, a.c, a.rs, a.canal, a.sub, a.loc, a.spv, a.prom, a.fi, a.ff, a.dias, a.dh, a.sla ? 'SI' : 'NO', a.obs, a.sug, a.cargas, ETAPA[a.func][0], dec(a.hl0), dec(a.hl1), dec(a.hlTot), (a.etq || []).join(' ')]));
 }
 function csvBajas(todo) {
   const L = todo ? bajasQ() : bajasOk().filter(filtroComun);
