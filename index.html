@@ -51,6 +51,7 @@ table.rta td{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .btn.limpiar[disabled]{opacity:.45;cursor:default} .btn.limpiar.activo{background:var(--crim);border-color:var(--crim);color:#fff}
 .qsel .limpiar-side{all:unset;grid-column:1/-1;margin-top:6px;text-align:center;font-size:12px;padding:7px 0;border-radius:8px;background:var(--crim);color:#fff;cursor:pointer;font-weight:600}
 .embed .qsel .limpiar-side{grid-column:auto;padding:6px 10px;margin:0}
+.edit.wa{background:#DCF8E8;color:#0B6E3B} .edit.wa:hover{background:#25D366;color:#fff}
 .geo{font-size:11px;white-space:nowrap;text-decoration:none} .geo:hover{text-decoration:underline}
 .formbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(90deg,#A51F36,#C62839 60%,#2BB5AA);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:14px}
 .formbar .btn{background:#fff}
@@ -452,6 +453,7 @@ function vAltas() {
   const base = altasQ();
   const F = { todas: ['Todas', a => true], fuera: ['+3 días', a => !a.sla], sincausa: ['+3 días sin causa', a => !a.sla && !a.obs], agregadas: ['Agregadas por el script', a => !a.enHoja && a.orig !== 'HOJA'], pend: ['Pendientes en base', null] };
   [...new Set((D.etiquetas || []).map(x => x.e))].forEach(e => { F['etq:' + e] = ['Altas de ' + e, a => (a.etq || []).includes(e)]; });
+  if (D.cfg.webApp) F.avisar = ['📲 Para avisar (últimos 30 días)', a => paraAvisar(a)];
   if (!F[S.altaFiltro]) S.altaFiltro = 'todas';
   const m = met(base.filter(filtroComun), []);
   let h = `<div class="grid g4">
@@ -469,6 +471,7 @@ function vAltas() {
         p.existe ? `<span class="pill p-v">CUIT ya existe: ${esc(p.cands.join(', '))}</span>` : (p.cargas > 1 ? `<span class="pill p-n">${p.cargas} cargas</span>` : '')]));
   }
   const L = base.filter(F[S.altaFiltro][1]).filter(filtroComun);
+  if (S.altaFiltro === 'avisar') h += `<div class="note" style="margin-bottom:10px">Altas de los últimos 30 días que <b>todavía no se le avisaron al promotor</b>. Tocá <b>📲 Avisar</b>: se abre WhatsApp con el mensaje listo (código, razón social y fecha) y queda registrado en la hoja <b>ABM AVISOS</b>. Los celulares se cargan en la hoja <b>ABM CONTACTOS</b>.${S.user ? '' : ' <b>Ingresá con tu clave</b> (abajo a la izquierda) para avisar.'}</div>`;
   if (S.altaFiltro.indexOf('etq:') === 0) {
     const e = S.altaFiltro.slice(4), fuera = (D.etiquetas || []).filter(x => x.e === e && !x.enAltas);
     h += `<div class="note" style="margin-bottom:10px">Clientes marcados como <b>alta de ${esc(e)}</b> en la hoja <b>ABM ETIQUETAS</b> del Sheet (para agregar más, sumá una fila con el código y la etiqueta).${fuera.length ? ` <b style="color:${COL.crit}">Revisar:</b> ${fuera.map(x => `${esc(x.c)} ${esc(x.rs || '(no existe en base)')}${x.alta ? ' · alta en base ' + fd(x.alta) : ''}${x.anulado ? ' · anulado' : ''}`).join(' · ')} — no figura${fuera.length > 1 ? 'n' : ''} como alta ${D.cfg.anio}.` : ''}</div>`;
@@ -480,13 +483,17 @@ function vAltas() {
     const e = Object.entries(cz).sort((a, b) => b[1] - a[1]);
     setTimeout(() => chart('chCausa', { type: 'bar', data: { labels: e.map(x => x[0]), datasets: [{ label: 'Altas', data: e.map(x => x[1]), backgroundColor: e.map(x => /^Sugerida|^Sin causa/.test(x[0]) ? COL.warn : COL.alta), borderRadius: 4, maxBarThickness: 18 }] }, options: baseOpts({ indexAxis: 'y', plugins: { legend: { display: false } } }) }), 0);
   }
-  return h + tabla(['Código', 'Razón social', 'Promotor', 'Localidad', 'Ubicación', 'Subcanal', 'Pedido', 'Alta', 'Días', 'Causa (col. M)', '¿Compró?', ''],
-    L.sort((a, b) => (b.dias - a.dias) || (b.ff > a.ff ? 1 : -1)).map(a => [
+  const avPri = S.altaFiltro === 'avisar';   // en "Para avisar" el botón va al principio
+  const filasA = L.sort((a, b) => (b.dias - a.dias) || (b.ff > a.ff ? 1 : -1)).map(a => [
       `<span class="code">${esc(a.c)}</span>`, { v: esc(a.rs) + (a.activo === false ? ' <span class="pill p-n">anulado</span>' : '') + (a.etq || []).map(e => ` <span class="pill p-v" title="Alta de ${esc(e)} (hoja ABM ETIQUETAS)">${esc(e)}</span>`).join(''), cls: 'w' }, who(a.prom), esc(a.loc), ubic(a), esc(a.sub),
       fd(a.fi) + (a.cargas > 1 ? ` <span class="pill p-n" title="Cargas del formulario: ${esc((a.pedidos || []).join(' · '))}. El reloj toma la primera; si una carga no corresponde, marcala en Solicitudes → Gestionar → No corresponde.">${a.cargas}×</span>` : ''), fd(a.ff), `<span class="pill ${a.sla ? 'p-g' : 'p-c'}">${a.dias} d</span>`,
       a.sla ? '' : (a.obs ? esc(a.obs) : `<span class="pill p-w">sugerida: ${esc(a.sug)}</span>`), `<span class="pill ${ETAPA[a.func][2]}">${ETAPA[a.func][0]}</span>`,
+      D.cfg.webApp ? celAviso(a) : '',
       a.fila ? `<a href="${sheetLink(D.cfg.gidAlta, a.fila)}" target="_blank">fila ${a.fila}</a>` : ''
-    ]));
+    ]);
+  const colsA = ['Código', 'Razón social', 'Promotor', 'Localidad', 'Ubicación', 'Subcanal', 'Pedido', 'Alta', 'Días', 'Causa (col. M)', '¿Compró?', D.cfg.webApp ? 'Aviso al promotor' : '', ''];
+  const mover = r => { const x = r.slice(); const v = x.splice(11, 1)[0]; x.splice(1, 0, v); return x; };
+  return h + tabla(avPri ? mover(colsA) : colsA, avPri ? filasA.map(mover) : filasA);
 }
 
 /* ---------- ALTAS QUE COMPRARON ---------- */
@@ -606,6 +613,41 @@ function vAlertas() {
   const col = (cls, tit, arr) => `<div class="col"><h4>${tit}<span class="pill ${cls}">${arr.length}</span></h4>${arr.sort((a, b) => b.dh - a.dh).map(cardBaja).join('') || '<div class="empty">—</div>'}</div>`;
   return h + `<div class="board">${col('p-c', '⛔ Más de 45 hábiles', P.filter(b => b.sem === 'ROJO'))}${col('p-w', '⚠ 31 a 45 hábiles', P.filter(b => b.sem === 'AMARILLO'))}${col('p-g', '✓ 0 a 30 hábiles', P.filter(b => b.sem === 'VERDE'))}</div>`;
 }
+/* ---------- AVISO POR WHATSAPP AL PROMOTOR ---------- */
+let AVISOS = {}, CEL = null;
+function paraAvisar(a) { if (AVISOS[a.c] || !a.ff) return false; const d = new Date(D.hoy); d.setDate(d.getDate() - 30); return a.ff >= d.toISOString().slice(0, 10); }
+function celAviso(a) {
+  const av = AVISOS[a.c];
+  if (av) return `<span class="pill p-g" title="Avisado por ${esc(av.usr)} el ${esc(av.fec)}">✓ avisado ${esc(av.fec.slice(8, 10) + '/' + av.fec.slice(5, 7))}</span>` + (puedeEditar(a.spv) ? ` <button class="edit" style="background:transparent" title="Volver a enviar" onclick="avisarAlta('${esc(a.c)}')">↻</button>` : '');
+  if (puedeEditar(a.spv)) return `<button class="edit wa" onclick="avisarAlta('${esc(a.c)}')">📲 Avisar</button>`;
+  return '<span class="muted small">sin avisar</span>';
+}
+function telWa(cel) {
+  let d = String(cel || '').replace(/\D/g, '');
+  if (!d) return '';
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('54')) { d = d.slice(2); if (d.startsWith('9')) d = d.slice(1); }
+  if (d.startsWith('0')) d = d.slice(1);
+  if (d.length === 12 && d.slice(3, 5) === '15') d = d.slice(0, 3) + d.slice(5);   // 261 15 xxxxxxx → 261 xxxxxxx
+  return d.length === 10 ? '549' + d : '';
+}
+async function avisarAlta(code) {
+  const a = D.altas.find(x => x.c === code); if (!a || !S.user) return;
+  if (!CEL) { try { const r = await (await fetch(D.cfg.webApp + '?action=contactos&clave=' + encodeURIComponent(S.user.clave))).json(); if (r.ok) CEL = r.cel || {}; else { toast('⚠️ ' + (r.error || 'No pude leer los celulares')); return; } } catch (e) { toast('⚠️ No pude conectarme con el Sheet'); return; } }
+  const nom = String(a.prom || '').replace(/^\d+--/, '');
+  const cel = CEL[String(a.prom || '').toUpperCase()] || Object.entries(CEL).find(([k]) => k.replace(/^\d+--/, '') === nom.toUpperCase())?.[1];
+  const tel = telWa(cel);
+  if (!tel) { toast(`⚠️ Falta el celular de ${nom} (o está mal cargado) en la hoja ABM CONTACTOS`); return; }
+  const s = (D.solicitudes || []).find(x => x.t === 'ALTA' && x.c === a.c);
+  const nombre = nom.charAt(0) + nom.slice(1).toLowerCase();
+  const msg = `Hola ${nombre}! 👋 El alta de *${a.rs}*${s && s.ident ? ' (CUIT/DNI ' + s.ident + ')' : ''}${a.loc ? ' · ' + a.loc : ''} ya quedó cargada en sistema con el código *${a.c}* (alta del ${fd(a.ff)}).${a.sub ? ' Subcanal: ' + a.sub + '.' : ''} Ya podés tomarle pedidos. 🙌`;
+  window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(msg), '_blank');
+  try {
+    const r = await (await fetch(D.cfg.webApp, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'avisoAlta', clave: S.user.clave, codigo: a.c, rs: a.rs, prom: a.prom, cel }) })).json();
+    if (r.ok) { AVISOS[a.c] = r.a; toast('📲 Aviso registrado'); render(); } else toast('⚠️ ' + r.error);
+  } catch (e) { toast('⚠️ Se abrió WhatsApp, pero no pude registrar el aviso'); }
+}
+
 /* ---------- EVIDENCIAS (mails / OK de Quilmes para bajas que estaban esperando) ---------- */
 const EVIDENCIAS = [{
   id: 'edf-robados-2026-04', titulo: 'EDF robados · OK de Quilmes para dar de baja', corto: 'OK Quilmes 20/04',
@@ -1027,6 +1069,7 @@ function aplicarEdicion(code, f) {
 async function traerEdiciones() {
   if (!D.cfg.webApp) return;
   try { const r = await (await fetch(D.cfg.webApp + '?action=bajas&t=' + Date.now())).json(); if (r.ok) Object.entries(r.rows).forEach(([c, f]) => aplicarEdicion(c, f)); } catch (e) { }
+  try { const r = await (await fetch(D.cfg.webApp + '?action=avisos&t=' + Date.now())).json(); if (r.ok) AVISOS = r.rows || {}; } catch (e) { }
   try { const r = await (await fetch(D.cfg.webApp + '?action=solicitudes&t=' + Date.now())).json();
     if (r.ok) {
       const rows = r.rows || {}, ids = new Set(Object.keys(rows));
