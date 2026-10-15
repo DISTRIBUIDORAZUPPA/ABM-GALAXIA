@@ -826,8 +826,7 @@ const RTA_TIPOS = { ALTA: ['Altas', 'p-a'], BAJA: ['Bajas', 'p-b'], MODIFICACION
 async function cargarRta() {
   if (RTA || RTA_CARGANDO) return; RTA_CARGANDO = true;
   try {
-    const r = await fetch('rta.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
-    RTA = await r.json(); SOL_TS = {}; (D.solicitudes || []).forEach(s => { if (s.ts) SOL_TS[s.ts] = s; });
+    RTA = await cargarJson('rta.json'); SOL_TS = {}; (D.solicitudes || []).forEach(s => { if (s.ts) SOL_TS[s.ts] = s; });
     RTA.rows.forEach(x => { const q = String(x.v[2] || '').toUpperCase().trim(); const m = QMAP[q] || {}; x.quien = q; x.spv = m.spv || ''; x.prom = m.prom || q;
       x.sol = (x.ts && SOL_TS[x.ts]) || (!x.ts ? (D.solicitudes || []).find(s => s.fila === x.fila && !s.ts) : null) || null; x.txt = (Object.values(x.v).join(' ') + ' ' + (x.arbol || '')).toUpperCase(); });
     if (SCOPE) RTA.rows = RTA.rows.filter(x => x.spv === SCOPE);
@@ -1137,8 +1136,19 @@ function render() {
   document.querySelectorAll('#app .filters').forEach(f => { if (!f.querySelector('.limpiar')) f.insertAdjacentHTML('beforeend', btnLimpiar()); });
   if (!document.querySelector('#app .filters') && hayFiltros()) $('#app').insertAdjacentHTML('afterbegin', `<div class="filters" style="margin-top:0">${btnLimpiar()}</div>`);
 }
+// Lee el JSON publicado. GitHub Pages a veces tarda (o encola) en mostrar lo nuevo: se pide también directo al repo
+// (raw.githubusercontent.com) y se usa el más reciente según "generado".
+const RAW = 'https://raw.githubusercontent.com/DISTRIBUIDORAZUPPA/ABM-GALAXIA/main/';
+async function cargarJson(nombre) {
+  const t = Date.now();
+  const pedir = u => fetch(u, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  const res = await Promise.allSettled([pedir(nombre + '?t=' + t), pedir(RAW + nombre + '?t=' + t)]);
+  const ok = res.filter(x => x.status === 'fulfilled').map(x => x.value);
+  if (!ok.length) throw res[0].reason || new Error('sin datos');
+  return ok.sort((a, b) => String(b.generado || '').localeCompare(String(a.generado || '')))[0];
+}
 async function init() {
-  try { const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); D = await r.json(); }
+  try { D = await cargarJson('data.json'); }
   catch (e) { $('#app').innerHTML = `<div class="card empty">No pude leer <b>data.json</b> (${esc(e.message)}). Corré “Actualizar todo” desde el menú 📋 ABM Galaxia del Sheet.</div>`; return; }
   (D.solicitudes || []).forEach(x => { const q = String(x.quien || '').toUpperCase().trim(); if (q && x.spv && !QMAP[q]) QMAP[q] = { spv: x.spv, prom: x.prom }; });
   D.altas.concat(D.bajas).forEach(x => { const q = String(x.prom || '').replace(/^\d+--/, '').toUpperCase(); const sp = spvOf(x); if (q && sp && !QMAP[q]) QMAP[q] = { spv: sp, prom: x.prom }; });
