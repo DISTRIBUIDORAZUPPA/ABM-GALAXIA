@@ -594,7 +594,7 @@ function vAlertas() {
     ${tile('No cumplieron 45 días', nf(fuera.length), `${compF.length} completadas tarde · ${fuera.length - compF.length} pendientes`, '<span style="font-size:26px">🗂</span>', "S.alertaVista='fuera';render()")}
   </div>
   <div class="filters">${selSpvProm(bajasOk())}
-    ${[['todas', 'Semáforo'], ['fuera', 'No cumplieron 45 días'], ['prox', 'Por vencer'], ['sigue', 'Siguen comprando'], ['desc', 'No corresponden · ' + bajasDesc().length]].map(([k, l]) => `<span class="chip ${S.alertaVista === k ? 'on' : ''}" onclick="S.alertaVista='${k}';render()">${l}</span>`).join('')}
+    ${[['todas', 'Semáforo'], ['fuera', 'No cumplieron 45 días'], ['prox', 'Por vencer'], ['sigue', 'Siguen comprando']].concat(OCULTAR_NC ? [] : [['desc', 'No corresponden · ' + bajasDesc().length]]).map(([k, l]) => `<span class="chip ${S.alertaVista === k ? 'on' : ''}" onclick="S.alertaVista='${k}';render()">${l}</span>`).join('')}
     <button class="btn" onclick="csvBajas()">⬇ CSV</button></div>`;
   if (S.alertaVista === 'desc') {
     const L = bajasDesc().filter(filtroComun);
@@ -613,6 +613,21 @@ function vAlertas() {
   const col = (cls, tit, arr) => `<div class="col"><h4>${tit}<span class="pill ${cls}">${arr.length}</span></h4>${arr.sort((a, b) => b.dh - a.dh).map(cardBaja).join('') || '<div class="empty">—</div>'}</div>`;
   return h + `<div class="board">${col('p-c', '⛔ Más de 45 hábiles', P.filter(b => b.sem === 'ROJO'))}${col('p-w', '⚠ 31 a 45 hábiles', P.filter(b => b.sem === 'AMARILLO'))}${col('p-g', '✓ 0 a 30 hábiles', P.filter(b => b.sem === 'VERDE'))}</div>`;
 }
+/* ---------- OCULTAR "NO CORRESPONDE" (pedido de Anahí 14/10: sacarlos por ahora; para volver a mostrarlos poner false) ---------- */
+const OCULTAR_NC = true;
+const NC = { ids: new Set(), ts: new Set(), filas: new Set(), codsB: new Set() };
+function filtrarNC() {
+  if (!OCULTAR_NC || !D) return;
+  (D.solicitudes || []).forEach(s => { if (estEf(s) === 'NO CORRESPONDE') { NC.ids.add(s.id); if (s.ts) NC.ts.add(s.ts); else NC.filas.add(s.fila); if (s.t === 'BAJA' && s.c) NC.codsB.add(s.c); } });
+  (D.bajas || []).forEach(b => { if (b.estado === 'DESCARTADA') NC.codsB.add(b.c); });
+  const ncAltas = (D.solicitudes || []).filter(s => NC.ids.has(s.id) && s.t === 'ALTA');
+  D.solicitudes = (D.solicitudes || []).filter(s => !NC.ids.has(s.id));
+  D.bajas = D.bajas.filter(b => !NC.codsB.has(b.c));
+  D.altasPend = (D.altasPend || []).filter(p => !ncAltas.some(s => (s.ident && String(p.id) === String(s.ident)) || (s.rs && p.rs === s.rs)));
+  if (D.hojaBaja) D.hojaBaja.rows = D.hojaBaja.rows.filter(r => !NC.codsB.has(String(r.v[D.hojaBaja.cod]).replace(/\D/g, '').replace(/^0+/, '')));
+  if (RTA) RTA.rows = RTA.rows.filter(x => !(x.ts ? NC.ts.has(x.ts) : NC.filas.has(x.fila)));
+}
+
 /* ---------- AVISO POR WHATSAPP AL PROMOTOR ---------- */
 let AVISOS = {}, CEL = null;
 function paraAvisar(a) { if (AVISOS[a.c] || !a.ff) return false; const d = new Date(D.hoy); d.setDate(d.getDate() - 30); return a.ff >= d.toISOString().slice(0, 10); }
@@ -752,7 +767,7 @@ function vSolicitudes() {
     ${tile('Para revisar', nf(cnt(s => estEf(s) === 'OTRO')), 'código inexistente o CUIT ya existe', '', "S.solEst='OTRO';render()")}
   </div>
   <div class="chips" style="margin-top:14px">${[['', 'Altas y bajas'], ['ALTA', 'Altas'], ['BAJA', 'Bajas']].map(([k, l]) => `<span class="chip ${S.solTipo === k ? 'on' : ''}" onclick="S.solTipo='${k}';render()">${l}</span>`).join('')}
-    <span style="width:12px"></span>${[['', 'Todos los estados']].concat(Object.entries(SOL_EST).map(([k, v]) => [k, v[0]])).map(([k, l]) => `<span class="chip ${S.solEst === k ? 'on' : ''}" onclick="S.solEst='${k}';render()">${l}<span class="c">${k ? cnt(s => estEf(s) === k) : base.length}</span></span>`).join('')}</div>
+    <span style="width:12px"></span>${[['', 'Todos los estados']].concat(Object.entries(SOL_EST).filter(([k]) => !(OCULTAR_NC && k === 'NO CORRESPONDE')).map(([k, v]) => [k, v[0]])).map(([k, l]) => `<span class="chip ${S.solEst === k ? 'on' : ''}" onclick="S.solEst='${k}';render()">${l}<span class="c">${k ? cnt(s => estEf(s) === k) : base.length}</span></span>`).join('')}</div>
   <div class="filters">${selSpvProm((D.solicitudes || []).map(s => ({ spv: s.spv, prom: s.prom })))}<button class="btn" onclick="csvSol()">⬇ CSV</button>
     ${D.cfg.urlForm ? `<a class="btn" href="${esc(D.cfg.urlForm)}" target="_blank">📝 Formulario ↗</a>` : ''}${D.cfg.gidSol ? `<a class="btn" href="${sheetLink(D.cfg.gidSol)}" target="_blank">📄 Hoja ABM SOLICITUDES</a>` : ''}</div>
   <div class="note" style="margin-bottom:10px">Cada respuesta del formulario. El <b>estado automático</b> sale de la base (alta cargada / cliente anulado). En <b>Gestión</b> podés marcar a mano si ya la realizaste, si está en gestión o si no corresponde${S.user ? '' : ' (ingresá con tu clave para editar)'}. Queda guardado en la hoja ABM SOLICITUDES.</div>`;
@@ -784,7 +799,7 @@ async function guardarSol(id) {
   try {
     const r = await (await fetch(D.cfg.webApp, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'guardarSolicitud', clave: S.user.clave, id, est, com }) })).json();
     if (!r.ok) { $('#e_err').textContent = r.error; btn.disabled = false; btn.textContent = '💾 Guardar'; return; }
-    aplicarSol(id, r.g); cerrarModal(); toast('✅ Guardado'); render();
+    aplicarSol(id, r.g); filtrarNC(); cerrarModal(); toast('✅ Guardado'); render();
   } catch (e) { $('#e_err').textContent = 'No pude guardar: ' + e.message; btn.disabled = false; btn.textContent = '💾 Guardar'; }
 }
 function solKey(s) { return 'K|' + s.t + '|' + s.f + '|' + String(s.ident == null ? '' : s.ident).replace(/\s+/g, '').toUpperCase(); }
@@ -816,6 +831,7 @@ async function cargarRta() {
     RTA.rows.forEach(x => { const q = String(x.v[2] || '').toUpperCase().trim(); const m = QMAP[q] || {}; x.quien = q; x.spv = m.spv || ''; x.prom = m.prom || q;
       x.sol = (x.ts && SOL_TS[x.ts]) || (!x.ts ? (D.solicitudes || []).find(s => s.fila === x.fila && !s.ts) : null) || null; x.txt = (Object.values(x.v).join(' ') + ' ' + (x.arbol || '')).toUpperCase(); });
     if (SCOPE) RTA.rows = RTA.rows.filter(x => x.spv === SCOPE);
+    filtrarNC();
   } catch (e) { RTA_ERR = e.message; }
   RTA_CARGANDO = false; render();
 }
@@ -1078,6 +1094,7 @@ async function traerEdiciones() {
         (D.solicitudes || []).forEach(s => { if (!ids.has(s.id) && solKey(s) === id) aplicarSol(s.id, g); });   // gestiones guardadas con el ID viejo
       });
       if (r.pubErr && (!D.generado || r.pubErr.fec > D.generado)) avisoPub(r.pubErr);
+      filtrarNC();
     } } catch (e) { }
 }
 function editarBaja(code) {
@@ -1139,6 +1156,7 @@ async function init() {
   $('#upd').textContent = `${D.altas.length} altas · ${D.bajas.length} bajas`;
   $('#lnkSheet').href = sheetLink(D.cfg.gidAlta);
   const h = location.hash.replace('#', ''); if (TABS.some(t => t[0] === h)) S.tab = h;
+  filtrarNC();
   render();
   traerEdiciones().then(render);
   if (EMBED) try { parent.postMessage({ abmListo: true }, '*'); } catch (e) { }
